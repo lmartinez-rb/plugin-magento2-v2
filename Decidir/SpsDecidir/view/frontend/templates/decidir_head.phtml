@@ -1,0 +1,220 @@
+<?php
+/**
+ * @description template para cargar el JS de pago de decidir
+ *
+ * @var $this Decidir\SpsDecidir\Block\DecidirHead
+ */
+?>
+<?php if(count($token = $this->getToken())): ?>
+    <script	type='text/javascript' src='<?= $this->getDecidirTokenJs() ?>'></script>
+<?php else: ; ?>
+    <script	type='text/javascript' src='<?= $this->getDecidirPaymentJs() ?>'></script>
+<?php endif; ?>
+
+<script type="text/javascript">
+    window.checkoutConfig.payment.decidirToken = <?= \Zend_Json::encode($token) ?>;
+    window.checkoutConfig.payment.paymentTokenJsDecidir = '<?= $this->getDecidirTokenJs() ?>';
+    window.checkoutConfig.payment.paymentJsDecidir      = '<?= $this->getDecidirPaymentJs() ?>';
+</script>
+
+
+
+
+<script src="https://live.decidir.com/static/v1/decidir.js"></script>
+<script type="text/javascript">
+const publicApiKey = '<?= $this->getPublicKey() ?>';
+const urlSandbox = '<?= $this->getUrlJs() ?>';
+var decidir_bin='';
+var decidir_tarjeta_sps='';
+var decidir_cuota='';
+var decidir_detalles_pago='Pago realizado con ';
+var decidir_holderName='';
+var decidir_lastDigits='';
+var decidir_expirationMonth='';
+var decidir_expirationYear='';
+var decidir_tokenPago='';
+var decidir_bancoId='';
+var decidir_planPago='';
+
+
+
+
+const decidirSandbox = new Decidir(urlSandbox);
+decidirSandbox.setPublishableKey(publicApiKey);
+decidirSandbox.setTimeout(0);//se configura sin timeout
+
+
+function sdkResponseHandler(status, response) {
+
+	console.log('sdkResponseHandler: '+status);
+	if (status == '200' ||status == '201') {
+		  console.log('OK - Respuesta: '+response );
+		  console.log('TOKEN: '+response.id );
+      decidir_bin=response.bin;
+      decidir_holderName=response.cardholder.name;
+      decidir_lastDigits=response.last_four_digits;
+      decidir_expirationMonth=response.expiration_month;
+      decidir_expirationYear=response.expiration_year;
+
+      require(['jquery', 'jquery/ui'], function($){ 
+        decidir_tarjeta_sps=$("[name='tarjeta']:checked").attr('data-id-sps');
+        decidir_cuota=$("[name='plan']:checked").val();
+        decidir_bancoId=$("[name='banco']:checked").val();
+        decidir_planPago=$('.box-plan-cuota.cuota-seleccionada').attr('id').split('_')[1];
+        console.log('decidir_planPago = '+ decidir_planPago);
+
+          console.log('objeto html con detalles: '+$('.detalles-plan-seleccionado > li > span'));
+          $('.detalles-plan-seleccionado > li > span').each(function(index,value)
+          {
+              console.log('itera '+index+jQuery(this).text());
+              if(index == 0)
+                  decidir_detalles_pago += jQuery(this).text() + ' y ';
+              if(index == 1)
+                  decidir_detalles_pago += jQuery(this).text() + ' en ';
+              if(index == 2)
+                  decidir_detalles_pago += jQuery(this).text();
+
+            console.log('1) decidir_detalles_pago = '+decidir_detalles_pago);    
+          });
+          console.log('2) decidir_detalles_pago = '+decidir_detalles_pago);
+
+      });
+      console.log('3) decidir_detalles_pago = '+decidir_detalles_pago);
+      
+
+      console.log('Guarda token API - response = '+response);
+      console.log('Acá hacer que se aprieta el botón de PLACE ORDER que está oculto ');
+
+      require(['jquery', 'jquery/ui'], function($){         
+      $.ajax('/spsdecidir/payment/authorizeAnswer',
+      {
+        method  : 'POST',
+        data    :
+        {
+            bin      : decidir_bin,
+            //quote_id   : quote.getQuoteId(),
+            tarjeta_sps: decidir_tarjeta_sps,
+            bancoId: decidir_bancoId,
+            cuota: decidir_cuota,
+            detalles_pago: decidir_detalles_pago,
+            planPago: decidir_planPago,
+            holderName: decidir_holderName,
+            lastDigits: decidir_lastDigits,
+            expirationMonth: decidir_expirationMonth,
+            expirationYear: decidir_expirationYear,
+            tokenPago: response.id
+
+        },                                    
+        success : function (responsePago)
+        {
+                       console.log('Pago. Respuesta: '+responsePago)
+                              //var res = JSON.parse(response);
+                              //if(res["status"]=="approved"){
+                                //console.log('ok pagado'+response+' - Estado: '+res["status"]);
+                              //}else{
+                                //console.log('Error al pagar'+response+' - Estado: '+res["status"]);
+                              //}
+                      $('#decidir-crear-orden').trigger('click');
+        },
+        error   : function (e, status)
+        {
+              console.log('Error pagado'+responsePago);
+        }
+      });
+      });
+
+
+
+  }else{
+      console.log('ERROR - STATUS: ' + status + ' - Respuesta: ' +response );
+      console.log('RESPONSE: '+JSON.stringify(response) );
+  }
+}
+
+function sdkResponseHandlerTokenizada(status, response) {
+
+  console.log('sdkResponseHandler: '+status);
+  if (status == '200' ||status == '201') {
+      console.log('OK - Respuesta: '+response );
+      console.log('TOKEN: '+response.id );
+      decidir_bin=response.bin;
+      decidir_holderName=response.cardholder.name;
+      decidir_lastDigits=response.last_four_digits;
+      decidir_expirationMonth=response.expiration_month;
+      decidir_expirationYear=response.expiration_year;
+
+      require(['jquery', 'jquery/ui'], function($){ 
+        decidir_tarjeta_sps=$("#decidir-token-tarjeta").attr('data-id-sps');
+        decidir_cuota=$("[name='plan']:checked").val();
+        decidir_planPago=$('.box-plan-cuota.cuota-seleccionada').attr('id').split('_')[1];
+
+
+        $('.detalles-plan-seleccionado-token > li > span').each(function(index,value)
+        {
+            console.log('itera '+index+jQuery(this).text());
+            if(index == 0)
+                decidir_detalles_pago += jQuery(this).text();
+                console.log('1) decidir_detalles_pago = '+decidir_detalles_pago);    
+        });
+      });
+      console.log('3) decidir_detalles_pago = '+decidir_detalles_pago);
+      
+
+      console.log('Guarda token API - response = '+response);
+      console.log('Acá hacer que se aprieta el botón de PLACE ORDER que está oculto ');
+
+      require(['jquery', 'jquery/ui'], function($){         
+      $.ajax('/spsdecidir/payment/authorizeAnswer',
+      {
+        method  : 'POST',
+        data    :
+        {
+            bin      : decidir_bin,
+            tokenPago: response.id,
+            tarjeta_sps: decidir_tarjeta_sps,
+            cuota: decidir_cuota,
+            detalles_pago: decidir_detalles_pago,
+            planPago: decidir_planPago,
+            holderName: decidir_holderName,
+            lastDigits: decidir_lastDigits,
+            expirationMonth: decidir_expirationMonth,
+            expirationYear: decidir_expirationYear,
+
+        },                                    
+        success : function (responsePago)
+        {
+                       console.log('Pago. Respuesta: '+responsePago)
+                              //var res = JSON.parse(response);
+                              //if(res["status"]=="approved"){
+                                //console.log('ok pagado'+response+' - Estado: '+res["status"]);
+                              //}else{
+                                //console.log('Error al pagar'+response+' - Estado: '+res["status"]);
+                              //}
+                      $('#decidir-crear-orden').trigger('click');
+        },
+        error   : function (e, status)
+        {
+              console.log('Error pagado'+responsePago);
+        }
+      });
+      });
+
+
+
+  }else{
+      console.log('ERROR - STATUS: ' + status + ' - Respuesta: ' +response );
+      console.log('RESPONSE: '+JSON.stringify(response) );
+  }
+}
+
+//funcion de invocacion con sdk
+/*
+function sendFormFunc(event) {
+  console.log('sendFormFunc - Envío form. pago');
+  var form=document.querySelector('#decidir2_formulario');
+  decidirSandbox.createToken(form, sdkResponseHandler);//formulario y callback
+
+  return false;
+}*/
+</script>
+

@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<!--
+/**
+* Configuracion de permisos de usuario para el modulo en el backend
+*
+*/
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../../../lib/internal/Magento/Framework/Acl/etc/acl.xsd">
+    <acl>
+        <resources>
+            <resource id="Magento_Backend::admin">
+                <resource id="Decidir_ExtensionesMenu::principal" title="Decidir">
+	            <resource id="Decidir_AdminPlanesCuotas::menuPrincipal" title="Administracion de planes de pago">
+	                    <resource id="Decidir_AdminPlanesCuotas::tarjetas" title="Administrar tarjetas" sortOrder="10" />
+	                    <resource id="Decidir_AdminPlanesCuotas::bancos" title="Administrar bancos" sortOrder="20" />
+	                    <resource id="Decidir_AdminPlanesCuotas::admin" title="Administrar planes de pago" sortOrder="30" />
+		    </resource>
+                </resource>
+            </resource>
+        </resources>
+    </acl>
+</config>

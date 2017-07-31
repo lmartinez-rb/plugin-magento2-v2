@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Sales:etc/sales.xsd">
+    <section name="quote">
+        <group name="totals">
+            <item name="descuento" instance="Decidir\AdminPlanesCuotas\Model\Quote\Total\DescuentoCuota" sort_order="150"/>
+            <item name="costo" instance="Decidir\AdminPlanesCuotas\Model\Quote\Total\Costo" sort_order="151"/>
+
+        </group>
+    </section>
+</config>
