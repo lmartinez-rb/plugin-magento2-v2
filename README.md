@@ -158,7 +158,7 @@ El reintegro se calcula con el monto total del pedido restando el descuento.
 + En el comentario de la factura de cada pedido se visualiza el valor de cada cuota sin restar ni visualizar el descuento ni reintegro. 
 
 <a name="MediosPagos"></a>
-##Medios de Pagos disponibles
+## Medios de Pagos disponibles
 
 Para visualizar los medios de pagos disponibles:
 
