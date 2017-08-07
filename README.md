@@ -10,6 +10,7 @@ Plug in para la integración con gateway de pago <strong>Decidir</strong>
 - [Backend - visualización de cuotas y descuentos](#backenddesc)
 - [Funcionalidades Frontend](#frontend)
 - [Frontend - Visualización de descuentos](#frontenddesc)
+- [Medios de Pagos](#MediosPagos)
 
 <a name="consideracionesgenerales"></a>
 ## Consideraciones generales.
@@ -156,7 +157,9 @@ El reintegro se calcula con el monto total del pedido restando el descuento.
 + El reintegro bancario no se visualiza en ninguna parte del historial de pedidos.
 + En el comentario de la factura de cada pedido se visualiza el valor de cada cuota sin restar ni visualizar el descuento ni reintegro. 
 
-**Medios de Pagos**
+<a name="MediosPagos"></a>
+##Medios de Pagos disponibles
+
 Para visualizar los medios de pagos disponibles:
 
 https://decidir.api-docs.io/1.0/tablas-de-referencia/payment_method_code_ids
