@@ -155,3 +155,8 @@ El reintegro se calcula con el monto total del pedido restando el descuento.
 + En la opción de imprimir factura, no se visualiza ni resta el descuento ni reintegro.
 + El reintegro bancario no se visualiza en ninguna parte del historial de pedidos.
 + En el comentario de la factura de cada pedido se visualiza el valor de cada cuota sin restar ni visualizar el descuento ni reintegro. 
+
+**Medios de Pagos**
+Para visualizar los medios de pagos disponibles:
+
+https://decidir.api-docs.io/1.0/tablas-de-referencia/payment_method_code_ids
