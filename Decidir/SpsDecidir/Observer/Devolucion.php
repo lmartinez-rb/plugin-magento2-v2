@@ -107,16 +107,13 @@ class Devolucion implements ObserverInterface
         $invoice    = $creditmemo->getInvoice();
 
         $order = $this->_orderRepository->get($creditmemo->getOrderId());
-
+        $this->_helper->log('DECIDIR2 - OBSERVER DEVOLUCION - ORDER ID: '.
+            print_r($creditmemo->getOrderId(),true)
+            ,'devoluciones.log');
 
         if($order->getPayment()->getMethod() == \Decidir\SpsDecidir\Model\Payment::CODE)
         {
             $ws = $this->_webservice;
-
-            $this->_helper->log('Debug getOrderId:'.
-                print_r($creditmemo->getOrderId(),true)
-                ,'devoluciones.log');
-
             $transaction_id="";
 
             $oInvoiceCollection = $order->getInvoiceCollection();
@@ -131,8 +128,13 @@ class Devolucion implements ObserverInterface
                 if ($order->getGrandTotal() == $creditmemo->getGrandTotal())
                 {
                     $data=array();
+                    $this->_helper->log('DECIDIR2 - OBSERVER DEVOLUCION - DEVOLVER TOTAL - DATA ENVIADA:'.
+                        print_r($data, true).' - $transaction_id: '.$transaction_id
+                        ,'devoluciones.log');
+
                     $response = $ws->devolverTotal($data, $transaction_id);
-                    $this->_helper->log('Debug Refund:'.
+
+                    $this->_helper->log('DECIDIR2 - OBSERVER DEVOLUCION - DEVOLVER TOTAL - RESPUESTA:'.
                         print_r($response, true)
                         ,'devoluciones.log');
                 }
@@ -141,30 +143,22 @@ class Devolucion implements ObserverInterface
                     $data=array(
                         "amount" => number_format($creditmemo->getGrandTotal(), 2)
                     );
-                    $response = $ws->devolverParcial($data, $transaction_id);
-                    $this->_helper->log('Debug Refund:'.
-                        print_r($response, true)
+                    $this->_helper->log('DECIDIR2 - OBSERVER DEVOLUCION - DEVOLVER PARCIAL - DATA ENVIADA:'.
+                        print_r($data, true).' - $transaction_id: '.$transaction_id
                         ,'devoluciones.log');
+
+                    $response = $ws->devolverParcial($data, $transaction_id);
+
+                    $this->_helper->log('DECIDIR2 - OBSERVER DEVOLUCION - DEVOLVER PARCIAL - RESPUESTA:'.
+                        print_r($response, true)
+                        ,'devoluciones.log');                    
                 }
-
-
-
-                $this->_helper->log('Debug getMethod:'.
-                    $order->getPayment()->getMethod()
-                    ,'devoluciones.log');
 
                 $creditmemo->addComment(
                 $response->getStatus(),
                 true,
                 true
                 );
-
-                //$this->_messageManager->addSuccessMessage($devolucion->getStatusMessage());
-
-                $this->_helper->log('Debug transaction_id:'.
-                    $transaction_id
-                    ,'devoluciones.log');
-
             }
             catch(\Exception $e)
             {

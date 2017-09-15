@@ -310,7 +310,7 @@ define(
 
 
 
-
+/*
                             new Payment().init(
                                 {
                                     id: 'decidir_spsdecidir-form',
@@ -382,7 +382,7 @@ define(
                                     displayCardBinContainerId       :   null
                                 }
                                 });
-
+*/
 
                             $('#boxSecCodeHelpContainer').detach().appendTo('li.sps-codigo-seguridad')
 /*                        }

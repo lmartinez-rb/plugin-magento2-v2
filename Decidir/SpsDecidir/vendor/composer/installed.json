@@ -1,25 +1,25 @@
 [
     {
         "name": "decidir2/php-sdk",
-        "version": "dev-master",
-        "version_normalized": "9999999-dev",
+        "version": "V1.0.5",
+        "version_normalized": "1.0.5.0",
         "source": {
             "type": "git",
             "url": "https://github.com/decidir/sdk-php-v2.git",
-            "reference": "bf97990ce73af41886da302c926a5c3d2a3c6ac1"
+            "reference": "5f05daaa5ccc0e28cc408656846fc3f2a1f07c30"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/decidir/sdk-php-v2/zipball/bf97990ce73af41886da302c926a5c3d2a3c6ac1",
-            "reference": "bf97990ce73af41886da302c926a5c3d2a3c6ac1",
+            "url": "https://api.github.com/repos/decidir/sdk-php-v2/zipball/5f05daaa5ccc0e28cc408656846fc3f2a1f07c30",
+            "reference": "5f05daaa5ccc0e28cc408656846fc3f2a1f07c30",
             "shasum": ""
         },
         "require": {
             "php": ">=5.3"
         },
-        "time": "2017-06-22 18:02:00",
+        "time": "2017-07-12 20:15:48",
         "type": "library",
-        "installation-source": "source",
+        "installation-source": "dist",
         "autoload": {
             "psr-4": {
                 "Decidir\\": "Decidir/lib"

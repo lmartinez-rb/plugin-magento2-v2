@@ -4,21 +4,21 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "fcc2ff79cab29261973430d1ce380237",
-    "content-hash": "bd1bc395675973935758a035d7b2595a",
+    "hash": "caf1068127c733c3afc002209a4dcc7a",
+    "content-hash": "d96dfe21ab930b25d1bffcdac2d29400",
     "packages": [
         {
             "name": "decidir2/php-sdk",
-            "version": "dev-master",
+            "version": "V1.0.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/decidir/sdk-php-v2.git",
-                "reference": "bf97990ce73af41886da302c926a5c3d2a3c6ac1"
+                "reference": "5f05daaa5ccc0e28cc408656846fc3f2a1f07c30"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/decidir/sdk-php-v2/zipball/bf97990ce73af41886da302c926a5c3d2a3c6ac1",
-                "reference": "bf97990ce73af41886da302c926a5c3d2a3c6ac1",
+                "url": "https://api.github.com/repos/decidir/sdk-php-v2/zipball/5f05daaa5ccc0e28cc408656846fc3f2a1f07c30",
+                "reference": "5f05daaa5ccc0e28cc408656846fc3f2a1f07c30",
                 "shasum": ""
             },
             "require": {
@@ -32,15 +32,13 @@
             },
             "notification-url": "https://packagist.org/downloads/",
             "description": "SDK para Decidir",
-            "time": "2017-06-22 18:02:00"
+            "time": "2017-07-12 20:15:48"
         }
     ],
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "decidir2/php-sdk": 20
-    },
+    "stability-flags": [],
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": [],

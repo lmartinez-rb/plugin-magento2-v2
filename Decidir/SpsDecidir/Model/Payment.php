@@ -212,6 +212,8 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         $customerSession        = $this->_customerSession;
            
         $infoOperacionSps = $this->_spsHelper->getInfoTransaccionSPS();
+        \Magento\Framework\App\ObjectManager::getInstance()
+        ->get(\Psr\Log\LoggerInterface::class)->debug('DECIDIR2 - MODEL PAYMENT - InfoOperacion: '.print_r($infoOperacionSps, true));        
         /*\Magento\Framework\App\ObjectManager::getInstance()
         ->get(\Psr\Log\LoggerInterface::class)->debug( 'infoOperacionSps payment model : '. print_r($infoOperacionSps, true) );
         \Magento\Framework\App\ObjectManager::getInstance()
@@ -243,10 +245,14 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
             ->getCollection()
             ->addFieldToFilter('plan_pago_id',['eq'=>$infoOperacionSps['planPago']]);
         $planPagoData=$planPagoDataCollection->getData();
-        /*\Magento\Framework\App\ObjectManager::getInstance()
-        ->get(\Psr\Log\LoggerInterface::class)->debug( 'getCcuotaData _planPagoFactory: '. print_r($planPagoData, true) );*/
         if( !empty($planPagoData[0]['merchant']) ){
             $merchant = $planPagoData[0]['merchant'];
+        }
+
+        if(!$order->getCustomerId()){ //Usuario guest
+            $customerId='guest';
+        }else{
+            $customerId=$order->getCustomerId();
         }
 
         try{
@@ -254,7 +260,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
             $data = array(
                 "site_transaction_id" => $order->getIncrementId(),
                 "token" => $infoOperacionSps['tokenPago'],
-                "user_id" => $order->getCustomerId(),
+                "user_id" => $customerId,
                 "payment_method_id" => (int)$infoOperacionSps['tarjeta_id'],
                 "amount" => number_format($amount, 2),
                 "bin" => $infoOperacionSps['bin'],
@@ -269,21 +275,19 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
                 $data["site_id"]=$planPagoData[0]['merchant'];
             }
 
-            /*
+
             \Magento\Framework\App\ObjectManager::getInstance()
-            ->get(\Psr\Log\LoggerInterface::class)->debug( 'data enviada en pago: '.print_r($data, true) );
-            */
+            ->get(\Psr\Log\LoggerInterface::class)->debug('DECIDIR2 - MODEL PAYMENT - pagar - Data: '.print_r($data, true) );
             $respuesta = $ws->pagar($data);
+
+            \Magento\Framework\App\ObjectManager::getInstance()
+            ->get(\Psr\Log\LoggerInterface::class)->debug('DECIDIR2 - MODEL PAYMENT - pagar respuesta: '.print_r($respuesta, true) );            
         }catch(\Exception $e){
             \Magento\Framework\App\ObjectManager::getInstance()
-            ->get(\Psr\Log\LoggerInterface::class)->debug( 'Error en PAYMENT model: '.$e );
+            ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR2 - MODEL PAYMENT - pagar ERROR: '.$e );
         }
 
-       /* \Magento\Framework\App\ObjectManager::getInstance()
-        ->get(\Psr\Log\LoggerInterface::class)->debug( 'setInfoTransaccionSPS: '.print_r($respuesta, true) );        
-        \Magento\Framework\App\ObjectManager::getInstance()
-        ->get(\Psr\Log\LoggerInterface::class)->debug('decidir_id_transaccion: '.$respuesta->getId());
-        */
+
         $estado_transaccion = $respuesta->getStatus();
         $decidir_id_transaccion         = $respuesta->getId();
         $infoOperacionSps['estado_transaccion']=$respuesta->getStatus();
@@ -295,17 +299,31 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
 
         if($this->_checkoutSession->getFinalizacionCompra()==true){
             $infoOperacionSps = $this->_spsHelper->getInfoTransaccionSPS();
-            if($this->_scopeConfig->getValue('payment/decidir_spsdecidir/mode') == \Decidir\SpsDecidir\Model\Webservice::MODE_DEV)
+            /*sif($this->_scopeConfig->getValue('payment/decidir_spsdecidir/mode') == \Decidir\SpsDecidir\Model\Webservice::MODE_DEV)
             {
                 $helper->log(print_r($infoOperacionSps,true),'info_operacion_sps_post_order.log');
-            }
+            }*/
 
             if(is_array($infoOperacionSps))
             {
                 if($estado_transaccion == $spsTransaccionesHelper::TRANSACCION_OK)
                 {
-                    $respuestaGetToken = $ws->getTarjetasTokenizadas(array(), $order->getCustomerId());
-                    $helper->guardarToken( $respuestaGetToken->getTokens(), $respuesta );
+                    //Si el usuario está registrado
+                    if(!empty($order->getCustomerId())){                    
+                        try{
+                            $respuestaGetToken = $ws->getTarjetasTokenizadas(array(), $order->getCustomerId());
+
+                            \Magento\Framework\App\ObjectManager::getInstance()
+                            ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR2 - MODEL PAYMENT - getTarjetasTokenizadas - $order->getCustomerId(): '.$order->getCustomerId().' - Respuesta: '. print_r($respuestaGetToken, true) );                        
+                        }catch(\Exception $e){
+                            \Magento\Framework\App\ObjectManager::getInstance()
+                            ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR2 - MODEL PAYMENT - getTarjetasTokenizadas ERROR: '.$e );
+                        }
+
+                        $helper->guardarToken( $respuestaGetToken->getTokens(), $respuesta );
+                    }
+
+
                     $orderTransactionIdSps =  $decidir_id_transaccion;
                     $infoOperacionSps['detalles_pago']=$infoOperacionSps['detalles_pago'];
 
@@ -400,3 +418,4 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         return true;
     }
 }
+

@@ -10,25 +10,24 @@ Plug in para la integración con gateway de pago <strong>Decidir</strong>
 - [Backend - visualización de cuotas y descuentos](#backenddesc)
 - [Funcionalidades Frontend](#frontend)
 - [Frontend - Visualización de descuentos](#frontenddesc)
-- [Medios de Pagos](#MediosPagos)
 
 <a name="consideracionesgenerales"></a>
 ## Consideraciones generales.
 El plug in de pagos de Decidir, provee a las tiendas Magento de un nuevo método de pago, integrando la tienda al gateway de pago. La versión de este plug in esta testeada en PHP 5.4 en adelante y MAGENTO 2.
-A continuación se explicaran las funcionalidades en dicho Plugin. Es sumamente importante que se compare con las necesidades de negocio para evaluar la utilización del mismo o recurrir a una integración vía SDK.
+A continuación se explicarán las funcionalidades en dicho Plugin. Es sumamente importante que se compare con las necesidades de negocio para evaluar la utilización del mismo o recurrir a una integración vía SDK.
 
 <a name="instalacion"></a>
 ## Instalación del plug in
 
 A. Descomprimir el archivo magento2-plugin-master.zip.
 
-B. Copiar todo su contenido en la carpeta app/code/Prisma/Decidir
+B. Copiar todo su contenido en la carpeta app/code/Decidir
 
 Luego,
 + Ejecutar los siguientes comandos de configuración de Magento desde la consola
 
 ```
-php bin/magento module:enable Prisma_Decidir
+php bin/magento module:enable Decidir
 php bin/magento setup:upgrade
 php bin/magento setup:di:compile
 php bin/magento setup:static-content:deploy es_AR #idioma instalado de la tienda.
@@ -37,12 +36,12 @@ php bin/magento setup:static-content:deploy es_AR #idioma instalado de la tienda
 + Refrescar el cache de Magento desde 'System -> Cache Management'
 + Luego ir a 'Stores -> Configuration -> Sales -> Payment Methods' y configurar desde la pestaña de Decidir.
 
-Observación: Descomentar: extension=php_curl.dll, extension=php_soap.dll y extension=php_openssl.dll del php.ini, ya que para la conexión al gateway se utiliza la clase SoapClient del API de PHP.
+Observación: Descomentar: extension=php_curl.dll y extension=php_openssl.dll del php.ini, ya que para la conexión al gateway se utiliza un API REST, conectándose por medio de PHP.
 
 <a name="configuracion"></a>
 ## Configuración general
-Para configurar el módulo es necesario ingresar a la opción del menú Stores > Configuration > Sales > Payment Methods, en esta página se listan todos los módulos de pago disponibles. Se debe buscar "SPS DECIDIR".
-(*) Para el correcto funcionamiento del módulo debe estar completo el campo "Token de seguridad" y "ID Site" (Provistos por decidir).
+Para configurar el módulo es necesario ingresar a la opción del menú Stores > Configuration > Sales > Payment Methods, en esta página se listan todos los módulos de pago disponibles. Se debe buscar "SPS DECIDIR 2".
+(*) Para el correcto funcionamiento del módulo debe estar completo el campo "Public key" y "Private key" (Provistos por Decidir).
 Para habilitar o deshabilitar el módulo se debe seleccionar el campo "Habilitado" en la opción correspondiente.
 Para editar el nombre que muestra al usuario final, se debe utilizar el campo "Título del método de pago" (Este se muestra en el último paso del checkout).
 
@@ -51,7 +50,7 @@ El campo "Estado de órdenes aprobadas" permite elegir el estado en que quedará
 
 <a name="cybersource"></a>
 ## Prevención de Fraude.
-Por el momento el plug in no cuenta con posibilidad de utilizar Cybersource.
+El plug in soporta las verticales Ticketing y Digitalgoods de Cybersource.
 
 <a name="backend"></a>
 ## Funcionalidades Backend
@@ -156,10 +155,3 @@ El reintegro se calcula con el monto total del pedido restando el descuento.
 + En la opción de imprimir factura, no se visualiza ni resta el descuento ni reintegro.
 + El reintegro bancario no se visualiza en ninguna parte del historial de pedidos.
 + En el comentario de la factura de cada pedido se visualiza el valor de cada cuota sin restar ni visualizar el descuento ni reintegro. 
-
-<a name="MediosPagos"></a>
-## Medios de Pagos disponibles
-
-Para visualizar los medios de pagos disponibles:
-
-https://decidir.api-docs.io/1.0/tablas-de-referencia/payment_method_code_ids

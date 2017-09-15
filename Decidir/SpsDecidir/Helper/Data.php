@@ -137,9 +137,6 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             }
         }
 
-        \Magento\Framework\App\ObjectManager::getInstance()
-        ->get(\Psr\Log\LoggerInterface::class)->debug('Data helper: ');
-        //echo "traza fin mètodo actualizarOrden";
         return true;
     }
 

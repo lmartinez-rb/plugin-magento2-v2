@@ -4,17 +4,23 @@
  *
  * @var $this Decidir\SpsDecidir\Block\DecidirHead
  */
+
+$token = $this->getToken();
+
+
+/*
 ?>
 <?php if(count($token = $this->getToken())): ?>
     <script	type='text/javascript' src='<?= $this->getDecidirTokenJs() ?>'></script>
 <?php else: ; ?>
     <script	type='text/javascript' src='<?= $this->getDecidirPaymentJs() ?>'></script>
-<?php endif; ?>
+<?php endif; 
+
+*/
+?>
 
 <script type="text/javascript">
-    window.checkoutConfig.payment.decidirToken = <?= \Zend_Json::encode($token) ?>;
-    window.checkoutConfig.payment.paymentTokenJsDecidir = '<?= $this->getDecidirTokenJs() ?>';
-    window.checkoutConfig.payment.paymentJsDecidir      = '<?= $this->getDecidirPaymentJs() ?>';
+    window.checkoutConfig.payment.decidirToken = <?= \Zend_Json::encode($token) ?>;  
 </script>
 
 
@@ -128,6 +134,36 @@ function sdkResponseHandler(status, response) {
   }else{
       console.log('ERROR - STATUS: ' + status + ' - Respuesta: ' +response );
       console.log('RESPONSE: '+JSON.stringify(response) );
+
+      response.error.forEach(function(mensajeError){
+        console.log('Each type '+mensajeError.error.type);
+        console.log('Each message '+mensajeError.error.message);
+        console.log('Each param '+mensajeError.error.param);
+        require(['jquery', 'jquery/ui'], function($){
+          //$('*[data-decidir-lbl="card_holder_name"]').text('Error traza');
+          $('*[data-decidir-lbl="'+ mensajeError.error.param +'"]').text(mensajeError.error.message);
+
+          if(mensajeError.error.param!='expiry_date'){
+            $('*[data-decidir-lbl="'+ mensajeError.error.param +'"]').text(mensajeError.error.message);
+            $('*[data-decidir-lbl="'+ mensajeError.error.param +'"]').addClass('errorLbl');
+            $('*[data-decidir="'+ mensajeError.error.param +'"]').addClass('errorInput');
+          }
+
+          if(mensajeError.error.param=='expiry_date'){
+            $('*[data-decidir-lbl="'+ mensajeError.error.param +'"]').text(mensajeError.error.message);
+            $('*[data-decidir-lbl="card_expiration_month"]').addClass('errorLbl');
+            $('*[data-decidir="card_expiration_month"]').addClass('errorInput');   
+
+            $('*[data-decidir-lbl="card_expiration_year"]').addClass('errorLbl');
+            $('*[data-decidir="card_expiration_year"]').addClass('errorInput');   
+
+                     
+          }
+
+
+
+        });        
+      });
   }
 }
 
