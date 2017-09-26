@@ -41,7 +41,7 @@ class InstallData implements InstallDataInterface
 
         $datosTarjetas = [
             ['sps_tarjeta_id'=>1 ,'nps_tarjeta_id'=>14 ,'logo_src'=>'t_visa.png','nombre'=>'VISA','activo'=>1,'prioridad_orden'=>1],
-            ['sps_tarjeta_id'=>6 ,'nps_tarjeta_id'=>1  ,'logo_src'=>'t_amex.png','nombre'=>'AMERICAN EXPRESS','activo'=>1,'prioridad_orden'=>3],
+            ['sps_tarjeta_id'=>65 ,'nps_tarjeta_id'=>1  ,'logo_src'=>'t_amex.png','nombre'=>'AMERICAN EXPRESS','activo'=>1,'prioridad_orden'=>3],
             ['sps_tarjeta_id'=>8 ,'nps_tarjeta_id'=>2  ,'logo_src'=>'t_diners.png','nombre'=>'DINERS','activo'=>1,'prioridad_orden'=>5],
             ['sps_tarjeta_id'=>15,'nps_tarjeta_id'=>5  ,'logo_src'=>'t_mastercard.png','nombre'=>'MASTERCARD','activo'=>1,'prioridad_orden'=>2],
             ['sps_tarjeta_id'=>20,'nps_tarjeta_id'=>5  ,'logo_src'=>'t_mastercard.png','nombre'=>'MASTERCARD TEST','activo'=>1,'prioridad_orden'=>2],

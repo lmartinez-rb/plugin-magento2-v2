@@ -260,7 +260,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
             $data = array(
                 "site_transaction_id" => $order->getIncrementId(),
                 "token" => $infoOperacionSps['tokenPago'],
-                "user_id" => $customerId,
+                "customer" => array("id" => $customerId, "email" => $customerSession->getCustomer()->getEmail()),
                 "payment_method_id" => (int)$infoOperacionSps['tarjeta_id'],
                 "amount" => number_format($amount, 2),
                 "bin" => $infoOperacionSps['bin'],
@@ -285,6 +285,8 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         }catch(\Exception $e){
             \Magento\Framework\App\ObjectManager::getInstance()
             ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR2 - MODEL PAYMENT - pagar ERROR: '.$e );
+            \Magento\Framework\App\ObjectManager::getInstance()
+            ->get(\Psr\Log\LoggerInterface::class)->debug('DECIDIR2 - MODEL PAYMENT - Data enviada: '.print_r($data, true) );                        
         }
 
 
