@@ -76,7 +76,8 @@ class Webservice
         $this->_scopeConfig = $scopeConfig;
         $this->_cart        = $cart;
         $this->_logger      = $logger;
-        
+        $this->_conector="";
+
         $this->_publicKey = $this->_scopeConfig->getValue('payment/decidir_spsdecidir/public_key');
         $this->_privateKey = $this->_scopeConfig->getValue('payment/decidir_spsdecidir/private_key');
 
@@ -195,6 +196,81 @@ class Webservice
     }
 
     /**
+     * @description Utiliza Cybersource
+     */
+    public function setCybersource($data)
+    {
+        $keys_data = array('public_key' => $this->getPublicKey(),
+                   'private_key' => $this->getPrivateKey());
+        
+        $ambient = $this->getAmbient();
+        $this->_conector = new \Decidir\Connector($keys_data, $ambient);
+
+                
+        $this->_conector->payment()->setCybersource($data);
+    }
+
+    /**
+     * @description Vertical Retail de Cybersource
+     */
+
+    public function cybersourceRetail($cs_data, $cs_products)
+    {
+        $cybersource = new \Decidir\Cybersource\Retail($cs_data, $cs_products);
+
+        return $cybersource->getData();
+    }
+
+    /**
+     * @description Vertical Travel de Cybersource
+     */
+
+    public function cybersourceTravel($cs_data, $cs_passanger)
+    {
+        $cybersource = new \Decidir\Cybersource\Travel($cs_data, $cs_passanger);
+
+        return $cybersource->getData();
+    }
+
+    /**
+     * @description Vertical Services de Cybersource
+     */
+
+    public function cybersourceServices($cs_data, $cs_products)
+    {
+        $cybersource = new \Decidir\Cybersource\Service($cs_data, $cs_products);
+
+        return $cybersource->getData();
+    }
+
+
+    /**
+     * @description Vertical Ticketing de Cybersource
+     */
+
+    public function cybersourceTicketing($cs_data, $cs_products)
+    {
+        $cybersource = new \Decidir\Cybersource\Ticketing($cs_data, $cs_products);
+
+        return $cybersource->getData();
+    }
+
+    /**
+     * @description Vertical Digitalgoods de Cybersource
+     */
+
+    public function cybersourceDigitalgoods($cs_data, $cs_products)
+    {
+        $cybersource = new \Decidir\Cybersource\Ticketing($cs_data, $cs_products);
+
+        return $cybersource->getData();
+    }
+
+
+
+
+
+    /**
      * @description Hace pago
      *
      * @param $data
@@ -207,9 +283,25 @@ class Webservice
 
         $ambient = $this->getAmbient();
         $connector = new \Decidir\Connector($keys_data, $ambient);
+        
         $response = $connector->payment()->ExecutePayment($data);
+        return $response;       
+    }
+
+
+    /**
+     * @description Hace pago cuando usa Cybersource
+     *
+     * @param $data
+     * @return \Decidir\Authorize\GetAuthorizeAnswer\Response
+     */
+    public function pagarCs($data)
+    {
+        $response = $this->_conector->payment()->ExecutePayment($data);
         return $response;
     }
+
+
 
     /**
      * @description Hace Devolución total

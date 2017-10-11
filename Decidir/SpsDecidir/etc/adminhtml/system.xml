@@ -46,6 +46,24 @@
                     <source_model>Magento\Sales\Model\Config\Source\Order\Status</source_model>
                     <comment>Indica el estado en el que quedará una orden al ser aprobada por decidir.</comment>
                 </field>
+                <field id="cybersource" translate="label" type="select" sortOrder="9" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Cybersource habilitado</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Habilita o deshabilita Cybersource</comment>
+                </field>
+                <field id="cybersourcevertical" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Cybersource Segmento</label>
+                    <source_model>Decidir\AdminPlanesCuotas\Model\Config\Source\Vertical</source_model>
+                    <comment>La elección del segmento determina los tipos de datos a enviar</comment>
+                </field>
+                <field id="cybersourcedeadline" translate="label" type="text" sortOrder="11" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Cybersource Deadline</label>
+                    <validate>validate-digits</validate>
+                    <comment>Días máximos para la entrega</comment>
+                </field>
+
+
+
                 <!--<field id="url_ok" translate="label" type="text" sortOrder="8" showInDefault="1" showInWebsite="1" showInStore="0">-->
                     <!--<label>Url de compra exitosa</label>-->
                     <!--<comment>URL a la que el comprador será dirigido cuando la compra resulte exitosa</comment>-->

@@ -150,6 +150,7 @@ define(
                                 self.afterPlaceOrder();
 
                                 if (self.redirectAfterPlaceOrder) {
+                                    console.log('Redirect success action');
                                     redirectOnSuccessAction.execute();
                                 }
                             }

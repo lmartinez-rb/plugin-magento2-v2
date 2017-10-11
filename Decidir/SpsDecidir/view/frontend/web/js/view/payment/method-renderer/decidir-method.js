@@ -919,6 +919,8 @@ define(
             },
 
             obtenerToken: function () {
+                this.limpiarCampos();
+
                 //OBTENER TOKEN DE PAGO Y HACER PAGO                
                 console.log('FUnción obtenerToken');
                 require(['jquery', 'jquery/ui'], function($){ 
@@ -941,7 +943,19 @@ define(
                     console.log('Placeorder: '+form);
                     decidirSandbox.createToken(form, sdkResponseHandlerTokenizada);//formulario y callback 
                 });
-            }           
+            },
+
+            limpiarCampos: function(){
+              //require(['jquery', 'jquery/ui'], function($){
+              $('*[data-decidir-lbl="card_holder_name"]').text(''); 
+              $('*[data-decidir-lbl="card_number"]').text(''); 
+              $('*[data-decidir-lbl="expiry_date"]').text(''); 
+              $('*[data-decidir="card_holder_name"]').removeClass('errorInput'); 
+              $('*[data-decidir="card_number"]').removeClass('errorInput'); 
+              $('*[data-decidir="card_expiration_year"]').removeClass('errorInput'); 
+              $('*[data-decidir="card_expiration_month"]').removeClass('errorInput'); 
+              //});
+            }
         });
     }
 );

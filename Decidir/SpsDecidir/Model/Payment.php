@@ -9,6 +9,8 @@ use Magento\Customer\Model\Session as CustomerSession;
 use Decidir\SpsDecidir\Model\DecidirTokenFactory;
 use Decidir\AdminPlanesCuotas\Model\CuotaFactory;
 use Decidir\AdminPlanesCuotas\Model\PlanPagoFactory;
+use Magento\Payment\Helper\Data as PaymentHelper;
+
 
 /**
  * Class Payment
@@ -18,6 +20,7 @@ use Decidir\AdminPlanesCuotas\Model\PlanPagoFactory;
 class Payment extends \Magento\Payment\Model\Method\AbstractMethod
 {
     const CODE = 'decidir_spsdecidir';
+    const MODULE_NAME = 'Decidir_SpsDecidir';
 
     /**
      * @var string
@@ -69,6 +72,11 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
     protected $transactionBuilder;
 
     /**
+     * @var \Magento\Sales\Api\TransactionRepositoryInterface
+     */
+    protected $transactionRepository;
+
+    /**
      * Availability option
      *
      * @var bool
@@ -115,6 +123,11 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
      */
     protected   $_planPagoFactory;
 
+    /**
+     * @var PaymentHelper
+     */
+    protected $_paymentHelper;
+
 
     /**
      * Payment constructor.
@@ -129,6 +142,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
      * @param \Magento\Framework\Stdlib\DateTime\TimezoneInterface $localeDate
      * @param \Magento\Checkout\Model\Session $checkoutSession
      * @param Transaction\BuilderInterface $transactionBuilder
+     * @param \Magento\Sales\Api\TransactionRepositoryInterface transactionRepository
      * @param \Decidir\SpsDecidir\Helper\Data $spsHelper
      * @param \Decidir\SpsDecidir\Helper\EstadoTransaccion $spsTransaccionesHelper
      * @param \Magento\Framework\Message\ManagerInterface $messageManager
@@ -139,6 +153,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
      * @param \Magento\Framework\Data\Collection\AbstractDb|null $resourceCollection
      * @param \Decidir\AdminPlanesCuotas\Model\CuotaFactory
      * @param \Decidir\AdminPlanesCuotas\Model\PlanPagoFactory
+     * @param PaymentHelper $paymentHelper     
      * @param array $data
      */
     public function __construct(
@@ -153,6 +168,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         \Magento\Framework\Stdlib\DateTime\TimezoneInterface $localeDate,
         \Magento\Checkout\Model\Session $checkoutSession,
         \Magento\Sales\Model\Order\Payment\Transaction\BuilderInterface $transactionBuilder,
+        \Magento\Sales\Api\TransactionRepositoryInterface $transactionRepository,        
         \Decidir\SpsDecidir\Helper\Data $spsHelper,
         \Decidir\SpsDecidir\Helper\EstadoTransaccion $spsTransaccionesHelper,
         \Magento\Framework\Message\ManagerInterface $messageManager,
@@ -161,6 +177,8 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         \Decidir\SpsDecidir\Model\DecidirTokenFactory $decidirToken,
         \Decidir\AdminPlanesCuotas\Model\CuotaFactory $cuotaFactory,
         \Decidir\AdminPlanesCuotas\Model\PlanPagoFactory $planPagoFactory,
+        PaymentHelper $paymentHelper,
+
         /**
          * Cuando se agregan dependencias en el metodo de pago, siempre tienen que estar antes del AbstractResource y
          * AbstractDb, ya que sino tira un fatal error...
@@ -172,6 +190,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
     {
         $this->_checkoutSession         = $checkoutSession;
         $this->transactionBuilder       = $transactionBuilder;
+        $this->transactionRepository    = $transactionRepository;
         $this->_spsHelper               = $spsHelper;
         $this->_spsTransaccionesHelper  = $spsTransaccionesHelper;
         $this->_messageManager          = $messageManager;
@@ -180,6 +199,10 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         $this->_decidirTokenFactory = $decidirToken;
         $this->_cuotaFactory        = $cuotaFactory;
         $this->_planPagoFactory        = $planPagoFactory;
+        $this->_moduleList             = $moduleList;
+        $this->_paymentHelper = $paymentHelper;
+
+
 
         parent::__construct(
             $context,
@@ -210,10 +233,16 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         $helper                 = $this->_spsHelper;
         $spsTransaccionesHelper = $this->_spsTransaccionesHelper;
         $customerSession        = $this->_customerSession;
+
+
            
         $infoOperacionSps = $this->_spsHelper->getInfoTransaccionSPS();
         \Magento\Framework\App\ObjectManager::getInstance()
         ->get(\Psr\Log\LoggerInterface::class)->debug('DECIDIR2 - MODEL PAYMENT - InfoOperacion: '.print_r($infoOperacionSps, true));        
+
+        \Magento\Framework\App\ObjectManager::getInstance()
+        ->get(\Psr\Log\LoggerInterface::class)->debug('DECIDIR2 - MODEL PAYMENT - Version plugin: '.$this->_moduleList
+            ->getOne(self::MODULE_NAME)['setup_version']);        
         /*\Magento\Framework\App\ObjectManager::getInstance()
         ->get(\Psr\Log\LoggerInterface::class)->debug( 'infoOperacionSps payment model : '. print_r($infoOperacionSps, true) );
         \Magento\Framework\App\ObjectManager::getInstance()
@@ -230,8 +259,8 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
             ->addFieldToFilter('plan_pago_id',['eq'=>$infoOperacionSps['planPago']])
             ->addFieldToFilter('cuota',['eq'=>$infoOperacionSps['cuota']]);
         $cuotaData=$cuotaCollection->getData();
-        /*\Magento\Framework\App\ObjectManager::getInstance()
-        ->get(\Psr\Log\LoggerInterface::class)->debug( 'getCcuotaData: '. print_r($cuotaData, true) );*/
+        \Magento\Framework\App\ObjectManager::getInstance()
+        ->get(\Psr\Log\LoggerInterface::class)->debug( 'getCcuotaData: '. print_r($cuotaData, true) );
         if( empty($cuotaData[0]['cuota_gateway']) ){
             $cantidad_cuotas = $cuotaData[0]['cuota'];
         }else{
@@ -255,12 +284,12 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
             $customerId=$order->getCustomerId();
         }
 
-        try{
+
             $ws = $this->_webservice;
             $data = array(
                 "site_transaction_id" => $order->getIncrementId(),
                 "token" => $infoOperacionSps['tokenPago'],
-                "customer" => array("id" => $customerId, "email" => $customerSession->getCustomer()->getEmail()),
+                "customer" => array("id" => "$customerId", "email" => $customerSession->getCustomer()->getEmail()),
                 "payment_method_id" => (int)$infoOperacionSps['tarjeta_id'],
                 "amount" => number_format($amount, 2),
                 "bin" => $infoOperacionSps['bin'],
@@ -276,19 +305,187 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
             }
 
 
+        if($this->_scopeConfig->getValue('payment/decidir_spsdecidir/cybersource')==1){
             \Magento\Framework\App\ObjectManager::getInstance()
-            ->get(\Psr\Log\LoggerInterface::class)->debug('DECIDIR2 - MODEL PAYMENT - pagar - Data: '.print_r($data, true) );
-            $respuesta = $ws->pagar($data);
+            ->get(\Psr\Log\LoggerInterface::class)->debug('DECIDIR - PAYMENT MODEL - Cybersource habilitado');     
+
+            if($this->_scopeConfig->getValue('payment/decidir_spsdecidir/cybersourcevertical')=='retail'):
+                \Magento\Framework\App\ObjectManager::getInstance()
+                ->get(\Psr\Log\LoggerInterface::class)->debug('DECIDIR - PAYMENT MODEL - Cybersource vertical: RETAIL');     
+                                       
+                $csData=$this->_spsHelper->getDataControlFraudeCommon($order, $this->_customerSession->getCustomer());
+                $csRetailData=$this->_spsHelper->getDataControlFraudeRetail($order, $this->_customerSession->getCustomer(), $csData);
+                $csProducts=$this->_spsHelper->getMultipleProductsInfo($order);
+
+                \Magento\Framework\App\ObjectManager::getInstance()
+                 ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR - PAYMENT MODEL - Cybersource data enviada: '.print_r($csRetailData, true) );
+                \Magento\Framework\App\ObjectManager::getInstance()
+                ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR - PAYMENT MODEL - Cybersource data products enviada: '.print_r($csRetailData, true) );
+                \Magento\Framework\App\ObjectManager::getInstance()
+                ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR - PAYMENT MODEL - DEBUG SETEANDO RETAIL: array_merge($csData, $csRetailData) = '.print_r(array_merge($csData, $csRetailData), true) );
+                \Magento\Framework\App\ObjectManager::getInstance()
+                ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR - PAYMENT MODEL - DEBUG SETEANDO RETAIL: csProducts = '.print_r(array_merge($csData, $csProducts), true) );
+                
+
+
+                $wsDataRetail = $ws->cybersourceRetail(array_merge($csData, $csRetailData), $csProducts);   
+                $ws->setCybersource( $wsDataRetail );     
+
+                try{       
+                    \Magento\Framework\App\ObjectManager::getInstance()
+                    ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR - PAYMENT MODEL - Pago realizado con Cybersource - Data a enviar: '.print_r($data, true) );                    
+                    $respuesta = $ws->pagarCs($data);
+
+                    \Magento\Framework\App\ObjectManager::getInstance()
+                    ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR - PAYMENT MODEL - Pago realizado con Cybersource - Respuesta recibida: '.print_r($respuesta, true) );                        
+                }catch(\Exception $e){
+                    \Magento\Framework\App\ObjectManager::getInstance()
+                    ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR - PAYMENT MODEL - Error en Pago realizado con Cybersource: '.$e );     
+                }
+            elseif($this->_scopeConfig->getValue('payment/decidir_spsdecidir/cybersourcevertical')=='ticketing'):
+                \Magento\Framework\App\ObjectManager::getInstance()
+                ->get(\Psr\Log\LoggerInterface::class)->debug('DECIDIR - PAYMENT MODEL - Cybersource vertical: Ticketing');     
+                                       
+                $csData=$this->_spsHelper->getDataControlFraudeCommon($order, $this->_customerSession->getCustomer());
+                $csTicketingData=$this->_spsHelper->getDataControlFraudeTicketing($order);
+                $csAll=array_merge($csData, $csTicketingData);
+                $csProducts=$this->_spsHelper->getMultipleProductsInfo($order);                    
+
+                \Magento\Framework\App\ObjectManager::getInstance()
+                ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR - PAYMENT MODEL - DEBUG: '.print_r($csAll, true) );  
+
+                $wsDataTicketing = $ws->cybersourceTicketing($csTicketingData, $csProducts);                           
+                $ws->setCybersource( array_merge($csTicketingData, $csData) );      
+
+                try{      
+                    \Magento\Framework\App\ObjectManager::getInstance()
+                    ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR - PAYMENT MODEL - Pago realizado con Cybersource - Data a enviar: '.print_r($data, true) );                       
+                    $respuesta = $ws->pagarCs($data);
+                
+                    \Magento\Framework\App\ObjectManager::getInstance()
+                    ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR - PAYMENT MODEL - Pago realizado con Cybersource - Respuesta recibida: '.print_r($respuesta, true) );                        
+                }catch(\Exception $e){
+                    \Magento\Framework\App\ObjectManager::getInstance()
+                    ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR - PAYMENT MODEL - Error en Pago realizado con Cybersource: '.$e );     
+                }
+
+            elseif($this->_scopeConfig->getValue('payment/decidir_spsdecidir/cybersourcevertical')=='digitalgoods'):
+                \Magento\Framework\App\ObjectManager::getInstance()
+                ->get(\Psr\Log\LoggerInterface::class)->debug('DECIDIR - PAYMENT MODEL - Cybersource vertical: Digitalgoods');     
+                                       
+                $csData=$this->_spsHelper->getDataControlFraudeCommon($order, $this->_customerSession->getCustomer());
+                $csDigitalgoodsData=$this->_spsHelper->getDataControlFraudeDigitalgoods($order);
+                $csAll=array_merge($csData, $csDigitalgoodsData);
+                $csProducts=$this->_spsHelper->getMultipleProductsInfo($order);                    
+
+                $wsDataDigitalgoods = $ws->cybersourceTicketing($csDigitalgoodsData, $csProducts);                           
+                $ws->setCybersource( array_merge($csDigitalgoodsData, $csData) );
+
+                try{
+                    \Magento\Framework\App\ObjectManager::getInstance()
+                    ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR - PAYMENT MODEL - Pago realizado con Cybersource - Data a enviar: '.print_r($data, true) );                                   
+                    $respuesta = $ws->pagarCs($data);
+                
+
+                    \Magento\Framework\App\ObjectManager::getInstance()
+                    ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR - PAYMENT MODEL - Pago realizado con Cybersource - Respuesta recibida: '.print_r($respuesta, true) );                        
+                }catch(\Exception $e){
+                    \Magento\Framework\App\ObjectManager::getInstance()
+                    ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR - PAYMENT MODEL - Error en Pago realizado con Cybersource: '.$e );     
+                }
+
+            elseif($this->_scopeConfig->getValue('payment/decidir_spsdecidir/cybersourcevertical')=='travel'):      \Magento\Framework\App\ObjectManager::getInstance()
+                ->get(\Psr\Log\LoggerInterface::class)->debug('DECIDIR - PAYMENT MODEL - Cybersource vertical: Travel');     
+                                       
+                $csData=$this->_spsHelper->getDataControlFraudeCommon($order, $this->_customerSession->getCustomer(), false);
+                $csTravelData=$this->_spsHelper->getDataControlTravel($order);
+                $csTravelPassengersData=$this->_spsHelper->getDataControlTravelPassengers($order);
+                $csAll=array_merge($csData, $csTravelData);
+
+                \Magento\Framework\App\ObjectManager::getInstance()
+                ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR - PAYMENT MODEL - Cybersource - Travel Data a enviar: '.print_r($csAll, true) );      
+
+                \Magento\Framework\App\ObjectManager::getInstance()
+                ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR - PAYMENT MODEL - Cybersource - Travel Data a enviar pasajeros: '.print_r($csTravelPassengersData, true) );      
+
+
+                try{
+                    $wsDataTravel = $ws->cybersourceTravel($csAll, $csTravelPassengersData);                       
+                    $ws->setCybersource( $wsDataTravel );
+                }catch(\Exception $e){
+                    \Magento\Framework\App\ObjectManager::getInstance()
+                    ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR - PAYMENT MODEL - Error en seteo de Cybersource: '.$e );     
+                }
+
+
+
+                try{
+                    \Magento\Framework\App\ObjectManager::getInstance()
+                    ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR - PAYMENT MODEL - Pago realizado con Cybersource - Data a enviar: '.print_r($csData, true) );                                   
+                    $respuesta = $ws->pagarCs($data);
+                
+
+                    \Magento\Framework\App\ObjectManager::getInstance()
+                    ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR - PAYMENT MODEL - Pago realizado con Cybersource - Respuesta recibida: '.print_r($respuesta, true) );                        
+                }catch(\Exception $e){
+                    \Magento\Framework\App\ObjectManager::getInstance()
+                    ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR - PAYMENT MODEL - Error en Pago realizado con Cybersource: '.$e );     
+                }
+
+
+            elseif($this->_scopeConfig->getValue('payment/decidir_spsdecidir/cybersourcevertical')=='services'):
+                \Magento\Framework\App\ObjectManager::getInstance()
+                ->get(\Psr\Log\LoggerInterface::class)->debug('DECIDIR - PAYMENT MODEL - Cybersource vertical: Services');     
+                     
+                $csData=$this->_spsHelper->getDataControlFraudeCommon($order, $this->_customerSession->getCustomer(), false);
+                $csServicesData=$this->_spsHelper->getDataControlFraudeServices($order);
+                $csAll=array_merge($csData, $csServicesData);
+                $csProducts=$this->_spsHelper->getMultipleProductsInfo($order);                    
+
+                \Magento\Framework\App\ObjectManager::getInstance()
+                ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR - PAYMENT MODEL - Cybersource vertical Service - Data Service: '.print_r($csServicesData, true) );    
+
+                try{
+                    \Magento\Framework\App\ObjectManager::getInstance()
+                    ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR - PAYMENT MODEL - Seteo Cybersource - Vertical Service correcto '); 
+
+                    //$wsDataRetail = $ws->cybersourceRetail(array_merge($csData, $csRetailData), $csProducts);   
+                    $wsDataServices = $ws->cybersourceServices(array_merge($csData, $csServicesData), $csProducts);
+                    $ws->setCybersource( $wsDataServices );                           
+                    //$ws->setCybersource( array_merge($csServicesData, $csData) );
+
+                }catch(\Exception $e){
+                    \Magento\Framework\App\ObjectManager::getInstance()
+                    ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR - PAYMENT MODEL - Seteo Cybersource - Vertical Service. Error: '.$e );     
+                }
+
+                try{
+                    \Magento\Framework\App\ObjectManager::getInstance()
+                    ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR - PAYMENT MODEL - Pago realizado con Cybersource - Data a enviar: '.print_r($data, true) );                                   
+                    $respuesta = $ws->pagarCs($data);
+                
+                    \Magento\Framework\App\ObjectManager::getInstance()
+                    ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR - PAYMENT MODEL - Pago realizado con Cybersource - Respuesta recibida: '.print_r($respuesta, true) );                        
+                }catch(\Exception $e){
+                    \Magento\Framework\App\ObjectManager::getInstance()
+                    ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR - PAYMENT MODEL - Error en Pago realizado con Cybersource: '.$e );     
+                }
+
+                endif;
+     
+        }else{
+            \Magento\Framework\App\ObjectManager::getInstance()
+            ->get(\Psr\Log\LoggerInterface::class)->debug('Cybersource deshabilitado');           
+            $respuesta = $ws->pagar($data);     
 
             \Magento\Framework\App\ObjectManager::getInstance()
-            ->get(\Psr\Log\LoggerInterface::class)->debug('DECIDIR2 - MODEL PAYMENT - pagar respuesta: '.print_r($respuesta, true) );            
-        }catch(\Exception $e){
-            \Magento\Framework\App\ObjectManager::getInstance()
-            ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR2 - MODEL PAYMENT - pagar ERROR: '.$e );
-            \Magento\Framework\App\ObjectManager::getInstance()
-            ->get(\Psr\Log\LoggerInterface::class)->debug('DECIDIR2 - MODEL PAYMENT - Data enviada: '.print_r($data, true) );                        
+            ->get(\Psr\Log\LoggerInterface::class)->debug('respuesta pago Sin CS: '.print_r($respuesta, true) );                   
         }
 
+
+       /* \Magento\Framework\App\ObjectManager::getInstance()
+        ->get(\Psr\Log\LoggerInterface::class)->debug('decidir_id_transaccion: '.$respuesta->getId());
+        */
 
         $estado_transaccion = $respuesta->getStatus();
         $decidir_id_transaccion         = $respuesta->getId();
@@ -308,6 +505,8 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
 
             if(is_array($infoOperacionSps))
             {
+                $orderTransactionIdSps="";
+
                 if($estado_transaccion == $spsTransaccionesHelper::TRANSACCION_OK)
                 {
                     //Si el usuario está registrado
@@ -348,38 +547,113 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
                     $this->invoice($payment,$infoOperacionSps['detalles_pago']);
 
                     $this->_messageManager->addSuccessMessage($mensajeEstado);
+                    $order->save();
+
                 }
                 else
                 {
-                    $infoPagoRechazado = sprintf(__('Pago rechazado. Nro Orden: %s. Nro. Operacion Decidir: %s Motivo: %s .'),
-                        $order->getIncrementId(), $orderTransactionIdSps,
-                        'Error en transaccion');
+                    $errorMsg=$respuesta->getStatus_details();
+                        $orderTransactionIdSps =  $decidir_id_transaccion;
+                        if(empty($orderTransactionIdSps)){
+                            $orderTransactionIdSps=$order->getIncrementId();
+                        }
+                        $infoOperacionSps['detalles_pago']=$infoOperacionSps['detalles_pago'];
 
-                    if($this->_scopeConfig->getValue('payment/decidir_spsdecidir/mode') == \Decidir\SpsDecidir\Model\Webservice::MODE_DEV)
-                    {
-                        $helper->log($infoPagoRechazado, 'pagos_rechazados_sps_' . date('Y_m_d') . '.log');
+
+
+                        \Magento\Framework\App\ObjectManager::getInstance()
+                                ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR2 - MODEL PAYMENT - Pago rechadazo. Estado: ' . $infoOperacionSps['estado_transaccion'] );
+                        \Magento\Framework\App\ObjectManager::getInstance()
+                                ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR2 - MODEL PAYMENT - Pago rechadazo. Razón: ' . $errorMsg->error['reason']['description'] );
+
+
+                        $infoPagoRechazado = sprintf(__('Pago rechazado. Nro Orden: %s. Nro. Operacion Decidir: %s Motivo: %s .'),
+                            $order->getIncrementId(), $errorMsg->error['reason']['description'],
+                            'Error en transaccion');
+
+                        if($this->_scopeConfig->getValue('payment/decidir_spsdecidir/mode') == \Decidir\SpsDecidir\Model\Webservice::MODE_DEV)
+                        {
+                            $helper->log($infoPagoRechazado, 'pagos_rechazados_sps_' . date('Y_m_d') . '.log');
+                        }
+
+                        $status = \Magento\Sales\Model\Order::STATE_CANCELED;
+
+                        $mensajeEstado = 'Su pago ID '. $orderTransactionIdSps .', de la orden '. $order->getIncrementId() .', con tarjeta de crédito fue rechazado. Mensaje devuelto por DECIDIR: '. $errorMsg->error['reason']['description'];
+                        $this->_messageManager->addErrorMessage($mensajeEstado);
+
+                        \Magento\Framework\App\ObjectManager::getInstance()
+                                ->get(\Psr\Log\LoggerInterface::class)->debug( 'MEnsaje de error añadido: '.$mensajeEstado );
+                        
+
+                        //$order->registerCancellation($mensajeEstado);
+                        //$order->cancel();
+
+
+                        try{
+                        $method = $order->getPayment()->getMethod();
+                        $methodInstance = $this->_paymentHelper->getMethodInstance($method);
+
+
+
+                        //$payment->setTransactionId($orderTransactionIdSps);
+                        //$payment->setAdditionalInformation('detalles_pago',$infoOperacionSps['detalles_pago']);
+                        $payment->setIsTransactionClosed(1);
+
+                        //$status = $this->_scopeConfig->getValue($status);
+
+                        $transaction = $this->transactionRepository->getByTransactionType(
+                            Transaction::TYPE_ORDER,
+                            $payment->getId(),
+                            $payment->getOrder()->getId()
+                        );
+                        
+                        if($transaction == null) {
+                            $orderTransactionId = $order->getId();
+                            $transaction = $this->transactionBuilder->setPayment($payment)
+                                ->setOrder($order)
+                                ->setTransactionId($order->getId())
+                                ->build(Transaction::TYPE_CAPTURE);
+                        }
+                        $payment->addTransactionCommentsToOrder($transaction, $mensajeEstado); 
+
+
+
+                        $statuses = $methodInstance->getOrderStatuses(); // ***************
+                        $status = $statuses["rechazado"];
+                        $state = \Magento\Sales\Model\Order::STATE_CANCELED;
+                        $order->setState($state)->setStatus($status);
+                        $payment->setSkipOrderProcessing(true);
+                        $payment->setIsTransactionDenied(true);
+                        $transaction->close();
+                        $order->cancel()->save();
+
+
+                        $this->_messageManager->addException($mensajeEstado, $mensajeEstados);
+                        $this->_getCheckoutSession()->restoreQuote();
+
+                    }catch(\Exception $e){
+                        \Magento\Framework\App\ObjectManager::getInstance()
+                        ->get(\Psr\Log\LoggerInterface::class)->debug( 'Error al cancelar: '.$e );     
                     }
-
-                    $status = \Magento\Sales\Model\Order::STATE_CANCELED;
-
-                    $mensajeEstado = 'Su pago con tarjeta de crédito fue rechazado. Mensaje devuelto por DECIDIR: %s.';
-
-                    $this->_messageManager->addErrorMessage($mensajeEstado);
-
-                    $order->registerCancellation($mensajeEstado);
-                    $order->cancel();
                 }
 
-                $order->save();
+
+                \Magento\Framework\App\ObjectManager::getInstance()
+                ->get(\Psr\Log\LoggerInterface::class)->debug('model - payment - cambio de estado. ESTADO: '.$status);                   
 
 
                 $history = $order->addStatusHistoryComment($mensajeEstado, $status);
                 $history->setIsVisibleOnFront(true);
                 $history->setIsCustomerNotified(true);
                 $history->save();
+
+
+                //$this->_redirect('checkout/onepage/failure');
+
             }
         } 
-       
+
+     
         return $this;
     }
 
