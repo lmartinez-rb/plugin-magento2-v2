@@ -10,7 +10,7 @@
     <system>
         <section id="payment">
             <group id="decidir_spsdecidir" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>SPS DECIDIR 2</label>
+                <label>SPS DECIDIR 2 v2.1.1</label>
                 <comment>
                     <![CDATA[<h3>Modulo de pago SPS DECIDIR 2</h3>]]>
                 </comment>

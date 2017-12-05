@@ -12,6 +12,7 @@ use Decidir\AdminPlanesCuotas\Model\PlanPagoFactory;
 use Magento\Payment\Helper\Data as PaymentHelper;
 
 
+
 /**
  * Class Payment
  *
@@ -471,12 +472,18 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
                     ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR - PAYMENT MODEL - Error en Pago realizado con Cybersource: '.$e );     
                 }
 
-                endif;
+            endif;
      
         }else{
             \Magento\Framework\App\ObjectManager::getInstance()
-            ->get(\Psr\Log\LoggerInterface::class)->debug('Cybersource deshabilitado');           
-            $respuesta = $ws->pagar($data);     
+            ->get(\Psr\Log\LoggerInterface::class)->debug('Cybersource deshabilitado');  
+
+            try{         
+                $respuesta = $ws->pagar($data);     
+            }catch(\Exception $e){
+                    \Magento\Framework\App\ObjectManager::getInstance()
+                    ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR - PAYMENT MODEL - Error en Pago realizado sin Cybersource: '.$e );     
+            }
 
             \Magento\Framework\App\ObjectManager::getInstance()
             ->get(\Psr\Log\LoggerInterface::class)->debug('respuesta pago Sin CS: '.print_r($respuesta, true) );                   
@@ -493,6 +500,10 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         $helper->setInfoTransaccionSPS($infoOperacionSps);
         $this->_checkoutSession->setFinalizacionCompra(true);
 
+
+        \Magento\Framework\App\ObjectManager::getInstance()
+            ->get(\Psr\Log\LoggerInterface::class)->debug('DECIDIR - PAYMENT MODEL - getstatus: '.$respuesta->getStatus());        
+
         $helper->actualizarOrden( $order );      
 
 
@@ -503,12 +514,23 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
                 $helper->log(print_r($infoOperacionSps,true),'info_operacion_sps_post_order.log');
             }*/
 
+
             if(is_array($infoOperacionSps))
             {
                 $orderTransactionIdSps="";
 
-                if($estado_transaccion == $spsTransaccionesHelper::TRANSACCION_OK)
-                {
+                if($estado_transaccion == $spsTransaccionesHelper::TRANSACCION_OK){
+                    //if($estado_transaccion != $spsTransaccionesHelper::TRANSACCION_OK)
+                    //{
+                         \Magento\Framework\App\ObjectManager::getInstance()
+                        ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR2 - MODEL PAYMENT - Pago Rechazado - ' . $infoOperacionSps['detalles_pago'] ); 
+                        
+                        //throw new \Exception("Error"); 
+                    //}
+                    \Magento\Framework\App\ObjectManager::getInstance()
+                        ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR2 - MODEL PAYMENT - Pago aceptado' );                   
+                    //$this->_messageManager->addSuccessMessage("error testing");
+
                     //Si el usuario está registrado
                     if(!empty($order->getCustomerId())){                    
                         try{
@@ -546,12 +568,22 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
 
                     $this->invoice($payment,$infoOperacionSps['detalles_pago']);
 
-                    $this->_messageManager->addSuccessMessage($mensajeEstado);
+                    $infoOperacionSps['transaccion_mensaje']=$mensajeEstado;
+                    $helper->setInfoTransaccionSPS($infoOperacionSps);
+
+                    //$this->_messageManager->addSuccessMessage($mensajeEstado);
                     $order->save();
 
-                }
-                else
-                {
+                    \Magento\Framework\App\ObjectManager::getInstance()
+                        ->get(\Psr\Log\LoggerInterface::class)->debug("Debug: " . '$payment->getTransactionId() = ' . $payment->getTransactionId() );
+
+                    \Magento\Framework\App\ObjectManager::getInstance()
+                        ->get(\Psr\Log\LoggerInterface::class)->debug("Debug: " . '$order->getIncrementId() = ' . $order->getIncrementId() );
+
+                }else{
+                    \Magento\Framework\App\ObjectManager::getInstance()
+                    ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR2 - MODEL PAYMENT - Error');
+
                     $errorMsg=$respuesta->getStatus_details();
                         $orderTransactionIdSps =  $decidir_id_transaccion;
                         if(empty($orderTransactionIdSps)){
@@ -559,13 +591,10 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
                         }
                         $infoOperacionSps['detalles_pago']=$infoOperacionSps['detalles_pago'];
 
-
-
                         \Magento\Framework\App\ObjectManager::getInstance()
-                                ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR2 - MODEL PAYMENT - Pago rechadazo. Estado: ' . $infoOperacionSps['estado_transaccion'] );
+                                ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR2 - MODEL PAYMENT - Pago rechazado. Estado: ' . $infoOperacionSps['estado_transaccion'] );
                         \Magento\Framework\App\ObjectManager::getInstance()
-                                ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR2 - MODEL PAYMENT - Pago rechadazo. Razón: ' . $errorMsg->error['reason']['description'] );
-
+                                ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR2 - MODEL PAYMENT - Pago rechazado. Razón: ' . $errorMsg->error['reason']['description'] );
 
                         $infoPagoRechazado = sprintf(__('Pago rechazado. Nro Orden: %s. Nro. Operacion Decidir: %s Motivo: %s .'),
                             $order->getIncrementId(), $errorMsg->error['reason']['description'],
@@ -579,77 +608,71 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
                         $status = \Magento\Sales\Model\Order::STATE_CANCELED;
 
                         $mensajeEstado = 'Su pago ID '. $orderTransactionIdSps .', de la orden '. $order->getIncrementId() .', con tarjeta de crédito fue rechazado. Mensaje devuelto por DECIDIR: '. $errorMsg->error['reason']['description'];
-                        $this->_messageManager->addErrorMessage($mensajeEstado);
+                        //$this->_messageManager->addErrorMessage($mensajeEstado);
+
+
+                        $infoOperacionSps['transaccion_mensaje']=$mensajeEstado;
+                        $helper->setInfoTransaccionSPS($infoOperacionSps);
+
 
                         \Magento\Framework\App\ObjectManager::getInstance()
-                                ->get(\Psr\Log\LoggerInterface::class)->debug( 'MEnsaje de error añadido: '.$mensajeEstado );
-                        
+                                ->get(\Psr\Log\LoggerInterface::class)->debug('Mensaje de error añadido: '.$mensajeEstado);
 
-                        //$order->registerCancellation($mensajeEstado);
-                        //$order->cancel();
+                            $method = $payment->getMethod();
+                            $methodInstance = $this->_paymentHelper->getMethodInstance($method);
 
-
-                        try{
-                        $method = $order->getPayment()->getMethod();
-                        $methodInstance = $this->_paymentHelper->getMethodInstance($method);
-
+                            $payment->setTransactionId($orderTransactionIdSps);
+                            $payment->setAdditionalInformation('detalles_pago',$infoOperacionSps['detalles_pago']);
+                            $payment->setIsTransactionClosed(1);
+ 
 
 
-                        //$payment->setTransactionId($orderTransactionIdSps);
-                        //$payment->setAdditionalInformation('detalles_pago',$infoOperacionSps['detalles_pago']);
-                        $payment->setIsTransactionClosed(1);
+                            $transaction = $this->transactionRepository->getByTransactionType(
+                                Transaction::TYPE_ORDER,
+                                $payment->getId(),
+                                $payment->getOrder()->getId()
+                            );
 
-                        //$status = $this->_scopeConfig->getValue($status);
+                            if($transaction == null) {
+                                $orderTransactionId = $order->getId();
+                                $transaction = $this->transactionBuilder->setPayment($payment)
+                                    ->setOrder($order)
+                                    ->setTransactionId($payment->getTransactionId())
+                                    //->setTransactionId($order->getId())
+                                    ->build(Transaction::TYPE_CAPTURE);
+                            }
+                            $payment->addTransactionCommentsToOrder($transaction, $mensajeEstado); 
 
-                        $transaction = $this->transactionRepository->getByTransactionType(
-                            Transaction::TYPE_ORDER,
-                            $payment->getId(),
-                            $payment->getOrder()->getId()
-                        );
-                        
-                        if($transaction == null) {
-                            $orderTransactionId = $order->getId();
-                            $transaction = $this->transactionBuilder->setPayment($payment)
-                                ->setOrder($order)
-                                ->setTransactionId($order->getId())
-                                ->build(Transaction::TYPE_CAPTURE);
-                        }
-                        $payment->addTransactionCommentsToOrder($transaction, $mensajeEstado); 
+                            $order->setState($status)->setStatus($status);
 
-
-
-                        $statuses = $methodInstance->getOrderStatuses(); // ***************
-                        $status = $statuses["rechazado"];
-                        $state = \Magento\Sales\Model\Order::STATE_CANCELED;
-                        $order->setState($state)->setStatus($status);
-                        $payment->setSkipOrderProcessing(true);
-                        $payment->setIsTransactionDenied(true);
-                        $transaction->close();
-                        $order->cancel()->save();
+                            $payment->setSkipOrderProcessing(true);
+                            $payment->setIsTransactionDenied(true);
 
 
-                        $this->_messageManager->addException($mensajeEstado, $mensajeEstados);
-                        $this->_getCheckoutSession()->restoreQuote();
+                            /*
+                            try{
+                                $transaction->close();
+                            }catch(\Exception $e){
+                                \Magento\Framework\App\ObjectManager::getInstance()
+                                ->get(\Psr\Log\LoggerInterface::class)->debug("Error al cerrar transacción: $e");                                  
+                            }
+                            */
 
-                    }catch(\Exception $e){
-                        \Magento\Framework\App\ObjectManager::getInstance()
-                        ->get(\Psr\Log\LoggerInterface::class)->debug( 'Error al cancelar: '.$e );     
-                    }
+                            $order->cancel()->save();
+                            //$this->_messageManager->addException($e, $e->getMessage());
+                            //$this->_messageManager->addErrorMessage("error testing");
                 }
-
 
                 \Magento\Framework\App\ObjectManager::getInstance()
                 ->get(\Psr\Log\LoggerInterface::class)->debug('model - payment - cambio de estado. ESTADO: '.$status);                   
-
+                
+                
+                //$this->_checkoutSession->restoreQuote();
 
                 $history = $order->addStatusHistoryComment($mensajeEstado, $status);
                 $history->setIsVisibleOnFront(true);
                 $history->setIsCustomerNotified(true);
                 $history->save();
-
-
-                //$this->_redirect('checkout/onepage/failure');
-
             }
         } 
 

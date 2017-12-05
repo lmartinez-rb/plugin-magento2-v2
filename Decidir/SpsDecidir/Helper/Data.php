@@ -154,12 +154,11 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             }
             else
             {
-                \Magento\Framework\App\ObjectManager::getInstance()
-                ->get(\Psr\Log\LoggerInterface::class)->debug('helper - data - actualizarOrden: TRANSACCIÓN OK ' . \Magento\Sales\Model\Order::STATE_CANCELED );                   
-
-
-
                 $orderStatus = $this->_scopeConfig->getValue('payment/decidir_spsdecidir/order_status');
+
+                \Magento\Framework\App\ObjectManager::getInstance()
+                ->get(\Psr\Log\LoggerInterface::class)->debug('helper - data - actualizarOrden: TRANSACCIÓN OK ' . $orderStatus );                   
+
                 $order->setStatus($orderStatus);
                 $order->save();
             }

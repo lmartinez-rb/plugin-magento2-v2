@@ -47,10 +47,115 @@ define(
             redirectAfterPlaceOrder: true,
             isPlaceOrderActionAllowed: ko.observable(quote.billingAddress() != null),
 
+
+            obtenerToken: function () {
+                //OBTENER TOKEN DE PAGO Y HACER PAGO                
+                console.log('FUnción obtenerToken');
+                require(['jquery', 'jquery/ui'], function($){ 
+                    var form=window.document.querySelector('#decidir_spsdecidir-form');
+
+                    
+                    console.log('Placeorder: '+form);
+                    decidirSandbox.createToken(form, sdkResponseHandler);//formulario y callback 
+                });
+            },
+
+
+            pagarTarjetaTokenizada: function(){
+                console.log('decidir_cuota - ANTES - : '+decidir_cuota);
+                //Guarda en sesión el token a utilizar
+                //decidir_cuota=$("[name='plan']:checked").val();
+                console.log('decidir_cuota = '+decidir_cuota)
+
+
+                require(['jquery', 'jquery/ui'], function($){ 
+                    var form=window.document.querySelector('#decidir_spsdecidir-form-token');
+
+                    console.log('Placeorder: '+form);
+                    decidirSandbox.createToken(form, sdkResponseHandlerTokenizada);//formulario y callback 
+                });
+
+/*
+                require(['jquery', 'jquery/ui'], function($){         
+                    $.ajax('/spsdecidir/payment/authorizeAnswer',
+                    {
+                        method  : 'POST',
+                        data    :
+                        {
+                            tokenPago: $("#decidir-token").val(),
+                            tarjeta_sps: decidir_tarjeta_sps,
+                            cuota: decidir_cuota,
+                            detalles_pago: decidir_detalles_pago,
+                            holderName: decidir_holderName,
+                            lastDigits: decidir_lastDigits,
+                            expirationMonth: decidir_expirationMonth,
+                            expirationYear: decidir_expirationYear,
+                            bin: decidir_bin
+
+                        },                                    
+                        success : function (responsePago)
+                        {
+                              console.log('Pago con tarjeta tokenzada. Respuesta: '+responsePago)
+                              //var res = JSON.parse(response);
+                              //if(res["status"]=="approved"){
+                                //console.log('ok pagado'+response+' - Estado: '+res["status"]);
+                              //}else{
+                                //console.log('Error al pagar'+response+' - Estado: '+res["status"]);
+                              //}
+                              $('#terminar-pedido-sps-token').trigger('click');
+                        },
+                        error   : function (e, status)
+                        {
+                              console.log('Error pagado'+responsePago);
+                        }
+                    });
+                });
+*/
+            },
+
+
             /**
              * After place order callback
              */
             afterPlaceOrder: function () {
+                //OBTENER TOKEN DE PAGO Y HACER PAGO
+                console.log('FUnción afterPlaceOrder');
+               /* console.log('QUOTE ID: '+quote.getQuoteId());
+              require(['jquery', 'jquery/ui'], function($){         
+                $.ajax('/spsdecidir/payment/authorizeAnswer',
+                {
+                    method  : 'POST',
+                    data    :
+                    {
+                        bin      : decidir_bin,
+                        quote_id   : quote.getQuoteId(),
+                        tarjeta_sps: decidir_tarjeta_sps,
+                        cuota: decidir_cuota,
+                        detalles_pago: decidir_detalles_pago,
+                        holderName: decidir_holderName,
+                        lastDigits: decidir_lastDigits,
+                        expirationMonth: decidir_expirationMonth,
+                        expirationYear: decidir_expirationYear
+
+                    },                                    
+                    success : function (responsePago)
+                    {
+                          console.log('Pago. Respuesta: '+responsePago)
+                          //var res = JSON.parse(response);
+                          //if(res["status"]=="approved"){
+                            //console.log('ok pagado'+response+' - Estado: '+res["status"]);
+                          //}else{
+                            //console.log('Error al pagar'+response+' - Estado: '+res["status"]);
+                          //}
+                          
+                    },
+                    error   : function (e, status)
+                    {
+                          console.log('Error pagado'+responsePago);
+                    }
+                });
+              });     */           
+                
             },
 
             /**
@@ -150,8 +255,15 @@ define(
                                 self.afterPlaceOrder();
 
                                 if (self.redirectAfterPlaceOrder) {
-                                    console.log('Redirect success action');
-                                    redirectOnSuccessAction.execute();
+                                    console.log('Redirect to controller validarPago');
+                                    console.log('QUOTE ID: '+quote.getQuoteId());
+                                    //console.log('method = '+this.item.method);
+                                    //console.log('method = '+this.getData());
+                                    //console.log('method = '+this);
+
+
+                                    //redirectOnSuccessAction.execute();
+                                    window.location.href="/spsdecidir/payment/validarPago";
                                 }
                             }
                         );

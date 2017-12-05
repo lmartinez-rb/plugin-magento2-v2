@@ -499,38 +499,6 @@ define(
                     });
                 }
 
-                if(planSeleccionado.cuota.interes  > 1)
-                {
-                    $.ajax('/rest/V1/costo/plan_pago/'+planSeleccionado.cuota.plan_pago_id+'/cuota/'+planSeleccionado.cuota.cuota,
-                    {
-                        method  : 'PUT',
-                        context : this,
-                        success : function (response)
-                        {       
-
-                            console.log('costo API');                           
-                            var deferred = $.Deferred();
-                            totals.isLoading(true);
-                            getPaymentInformationAction(deferred);  
-                            $.when(deferred).done(function () {
-                                totals.isLoading(false);
-                            });                     
-
-                            console.log('response='+response);
-                            $('tr.decidir_costo th').text(response);
-                            $('tr.decidir_costo').show();
-
-                                           
-                        },
-                        error   : function (e, status)
-                        {
-                            alert("Se produjo un error, por favor intentelo nuevamente");
-                            $('.adminplanes-loader').addClass('no-display-2');
-                            $('tr.costo').hide();
-                        }
-                    }); 
-                }                
-
                 $('.adminplanes-loader').addClass('no-display-2');
                 $('.sps-codigo-seguridad-token').removeClass('no-display-2');
                 $('button.aplicar-cuotas-token').hide();
@@ -916,45 +884,6 @@ define(
                 $('.tarjeta-container').hide();
                 $('#tarjeta-token_'+tokenId).show();
                 $('#decidir-token').val(datosToken.token);
-            },
-
-            obtenerToken: function () {
-                this.limpiarCampos();
-
-                //OBTENER TOKEN DE PAGO Y HACER PAGO                
-                console.log('FUnción obtenerToken');
-                require(['jquery', 'jquery/ui'], function($){ 
-                    var form=window.document.querySelector('#decidir_spsdecidir-form');
-
-                    console.log('Placeorder: '+form);
-                    decidirSandbox.createToken(form, sdkResponseHandler);//formulario y callback 
-                });
-            },
-
-
-            pagarTarjetaTokenizada: function(){
-                console.log('decidir_cuota - ANTES - : '+decidir_cuota);
-                //decidir_cuota=$("[name='plan']:checked").val();
-                console.log('decidir_cuota = '+decidir_cuota)
-
-                require(['jquery', 'jquery/ui'], function($){ 
-                    var form=window.document.querySelector('#decidir_spsdecidir-form-token');
-
-                    console.log('Placeorder: '+form);
-                    decidirSandbox.createToken(form, sdkResponseHandlerTokenizada);//formulario y callback 
-                });
-            },
-
-            limpiarCampos: function(){
-              //require(['jquery', 'jquery/ui'], function($){
-              $('*[data-decidir-lbl="card_holder_name"]').text(''); 
-              $('*[data-decidir-lbl="card_number"]').text(''); 
-              $('*[data-decidir-lbl="expiry_date"]').text(''); 
-              $('*[data-decidir="card_holder_name"]').removeClass('errorInput'); 
-              $('*[data-decidir="card_number"]').removeClass('errorInput'); 
-              $('*[data-decidir="card_expiration_year"]').removeClass('errorInput'); 
-              $('*[data-decidir="card_expiration_month"]').removeClass('errorInput'); 
-              //});
             }
         });
     }
