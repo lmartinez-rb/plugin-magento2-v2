@@ -27,6 +27,8 @@ define(
             tarjeta:ko.observableArray([]),
             banco:ko.observableArray([]),
             vigente_desde:ko.observable(''),
+            vigente_desde_gmt:ko.observable(''),
+
             vigente_hasta:ko.observable(''),
             diasVigente:ko.observableArray([]),
             promocionesNoAcumulables:ko.observableArray([]),
@@ -62,6 +64,7 @@ define(
                 this.cuotas   = window.adminPlanesCuotasConfig.cuotas;
                 this.promocionesCarrito = window.adminPlanesCuotasConfig.promocionesCarrito;
 
+
                 if(this.plan_pago)
                 {
                     var dias = this.plan_pago.dias.split(',');
@@ -79,7 +82,10 @@ define(
                     this.tarjeta([this.plan_pago.tarjeta_id]);
                     this.banco([this.plan_pago.banco_id]);
                     this.vigente_desde(this.plan_pago.vigente_desde);
+                    this.vigente_desde_gmt(this.plan_pago.vigente_desde_gmt);
+                    
                     this.vigente_hasta(this.plan_pago.vigente_hasta);
+
                     this.diasVigente(dias);
                     this.promocionesNoAcumulables(promocionesCarrito);
                     this.prioridad(this.plan_pago.prioridad);
@@ -215,6 +221,7 @@ define(
                 console.log(this.banco());
                 console.log(this.vigente_desde());
                 console.log(this.vigente_hasta());
+
                 console.log(this.prioridad());
                 console.log(this.merchant());
                 console.log(this.activo());

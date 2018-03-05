@@ -57,24 +57,56 @@ class Container extends \Decidir\AdminPlanesCuotas\Block\Adminhtml\PlanPago\Cont
         $this->_session       = $adminplanescuotasSession;
         $this->_cuotasFactory = $cuotasFactory;
         $this->_ruleFactory         = $ruleFactory;
-	$this->_planPagoFactory = $planPagoFactory;
+
+	   $this->_planPagoFactory = $planPagoFactory;
+       $this->timezoneInterface = $context->getLocaleDate();
+       
 
         parent::__construct($context,$data,$medioPagoFactory,$bancoFactory,$helper,$ruleFactory);
     }
+
 
     /**
      * @return mixed
      */
     public function getPlanPago()
     {
-	$rowId = (int) $this->_session->getPlanPago();
-	$rowData = $this->_planPagoFactory->create();
+    	$rowId = (int) $this->_session->getPlanPago();
+    	$rowData = $this->_planPagoFactory->create();
 
-	$planPago = $rowData->load($rowId);
+    	$planPago = $rowData->load($rowId);
         $this->_planPagoId = $planPago->getPlanPagoId();
 
+
+        $vigenteDesdeGtm=$this->converToTz(
+            $planPago->getVigenteDesde(), 
+            // get Config Timezone of current user 
+            $this->timezoneInterface->getConfigTimezone(),
+
+            // get default timezone of system (UTC)
+            $this->timezoneInterface->getDefaultTimezone()
+
+        );
+        $planPago->setVigenteDesde( $vigenteDesdeGtm );
+
+        //Guarda con TIME ZONE CORRECTO
+        $vigenteHastaGtm=$this->converToTz(
+            $planPago->getVigenteHasta(), 
+            // get Config Timezone of current user 
+            $this->timezoneInterface->getConfigTimezone(),
+
+            // get default timezone of system (UTC)
+            $this->timezoneInterface->getDefaultTimezone() 
+
+        );        
+        $planPago->setVigenteHasta( $vigenteHastaGtm );
+
+        
         return $planPago->getData();
     }
+
+
+
 
     /**
      * @return mixed
@@ -88,4 +120,23 @@ class Container extends \Decidir\AdminPlanesCuotas\Block\Adminhtml\PlanPago\Cont
         return $cuotas->getData();
     }
 
+
+    /**
+     * converToTz convert Datetime from one zone to another
+     * @param string $dateTime which we want to convert
+     * @param string $toTz timezone in which we want to convert
+     * @param string $fromTz timezone from which we want to convert
+    */
+    protected function converToTz($dateTime="", $toTz='', $fromTz='')
+    {   
+        // timezone by php friendly values
+        $date = new \DateTime($dateTime, new \DateTimeZone($fromTz));
+        $date->setTimezone(new \DateTimeZone($toTz));
+        //$dateTime = $date->format('d/m/Y H:i:s');
+        
+        
+        $dateTime = $date->format(\Magento\Framework\Stdlib\DateTime::DATETIME_PHP_FORMAT);
+
+        return $dateTime;
+    }
 }

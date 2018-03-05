@@ -115,11 +115,11 @@ class DecidirHead extends Template
     {
         if($this->_scopeConfig->getValue('payment/decidir_spsdecidir/mode') == \Decidir\SpsDecidir\Model\Webservice::MODE_DEV)
         {
-            return 'https://developers.decidir.com/api/v1';
+            return 'https://developers.decidir.com/api/v2';
         }
         elseif($this->_scopeConfig->getValue('payment/decidir_spsdecidir/mode') == \Decidir\SpsDecidir\Model\Webservice::MODE_PROD)
         {
-            return 'https://live.decidir.com/api/v1';
+            return 'https://live.decidir.com/api/v2';
         }        
     }
 

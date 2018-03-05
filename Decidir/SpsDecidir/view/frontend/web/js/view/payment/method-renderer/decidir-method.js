@@ -158,29 +158,7 @@ define(
 
                 planSeleccionado.detalleReintegro = this.getDetalleReintegro(planSeleccionado.cuota.reintegro,planSeleccionado.cuota.tipo_reintegro);
 
-                //$('table.table-totals tbody').append(trHtml)
-
-                $('.detalles-plan-seleccionado').html(detallesPlan);
-/*
-                $.ajax('/spsdecidir/payment/authorizeRequest',
-                {
-                    type     : "post",
-                    context  : this,
-                    data     :
-                    {
-                        tarjeta_id      : sps_id,
-                        cantidad_cuotas : cuotas,
-                        cuota_enviar    : planSeleccionado.cuota.cuota_enviar,
-                        plan_pago_id    : plan_pago_id
-                    },
-                    
-                    success  : function(response)
-                    { 
-                        
-                        if(response.rk != 0 && response.prk !=0)
-                        {
-*/                            
-                            
+                $('.detalles-plan-seleccionado').html(detallesPlan);                            
                             console.log('planSeleccionado.cuota.descuento = '+planSeleccionado.cuota.descuento)
                             var descuentoShow=false;
 
@@ -218,8 +196,6 @@ define(
                                 });
                             }
 
-
-
                             if(planSeleccionado.cuota.interes  > 1)
                             {
                                  $.ajax('/rest/V1/costo/plan_pago/'+planSeleccionado.cuota.plan_pago_id+'/cuota/'+planSeleccionado.cuota.cuota,
@@ -239,9 +215,7 @@ define(
 
                                             console.log('response='+response);
                                             $('tr.decidir_costo th').text(response);
-                                            $('tr.decidir_costo').show();
-
-                                           
+                                            $('tr.decidir_costo').show();  
                                         },
                                         error   : function (e, status)
                                         {
@@ -251,16 +225,6 @@ define(
                                         }
                                 }); 
                             }
-
-
-
-
-
-                    
-
-
-
-
 
                             trCftHtml += "<tr class='leyenda-cft'>" +
                                  "<th class='mark'>" +
@@ -303,110 +267,7 @@ define(
                             $('div.sps-datos-tarjeta').show('slow');
                             $('#sps-pagar-btn').show();
                             $('.adminplanes-loader').addClass('no-display-2');
-
-                            //var responseKeys = {rk:response.rk,prk:response.prk};
-                            var responseKeys = {rk:"1111",prk:"2222"};
-                            $('#sps-request-key').val("2222");
-
-
-
-/*
-                            new Payment().init(
-                                {
-                                    id: 'decidir_spsdecidir-form',
-                                    fieldsId:
-                                    {
-                                        CardHolderName         : 'sps-tarjeta-nombre',
-                                        CardHolderMail         : 'sps-email',
-                                        CardNumber             : 'sps-tarjeta-numero',
-                                        CardExpirationDate     : 'sps-tarjeta-vencimiento',
-                                        CardSecurityCode       : 'sps-tarjeta-codigo-seguridad',
-                                        PublicRequestKey       : 'sps-request-key',
-                                        CardSecurityCodeHelper : 'sps-tarjeta-codigo-seguridad-helper'
-                                    },
-                                    callback: function(responsePayment)
-                                    {
-
-                                        console.log(responsePayment);
-
-                                        if("Error" in responsePayment && responsePayment.Error.length > 0)
-                                            return false;
-
-                                        var detallesPago = 'Pago realizado con ';
-
-                                        $('.detalles-plan-seleccionado > li > span').each(function(index,value)
-                                        {
-                                            if(index == 0)
-                                                detallesPago += jQuery(this).text() + ' y ';
-                                            if(index == 1)
-                                                detallesPago += jQuery(this).text() + ' en ';
-                                            if(index == 2)
-                                                detallesPago += jQuery(this).text();
-                                        });
-
-                                        responseKeys.pak    = responsePayment.PublicAnswerKey;
-                                        responseKeys.status = responsePayment.Status;
-                                        responseKeys.tarjeta= $("[name='tarjeta']:checked").val();
-                                        responseKeys.banco  = $("[name='banco']:checked").val();
-                                        responseKeys.detallesPago = detallesPago;
-
-                                        //$('#terminar-pedido-sps').trigger('click');
-
-
-                                        
-                                        $.ajax('/spsdecidir/payment/authorizeAnswer',
-                                            {
-                                                type    : "post",
-                                                data    : responseKeys,
-                                                success : function (response)
-                                                {
-                                                    console.log(response);
-                                                    $('#terminar-pedido-sps').trigger('click');
-                                                },
-                                                error   : function (e, status)
-                                                {
-                                                    alert("Se produjo un error, por favor intentelo nuevamente");
-                                                    $('.adminplanes-loader').addClass('no-display-2');
-                                                    console.log(e);
-                                                }
-                                            });
-                                        
-                                    }
-                                    ,options:
-                                {
-                                    displayCreditCardTypeDetected   :   false,
-                                    displayCreditCardTypeContainerId:   null,
-                                    cardType                        :   $("[name='tarjeta']:checked").val(),
-                                    cardBin                         :   null,
-                                    displayCardBin                  :   true,
-                                    displayCardBinContainerId       :   null
-                                }
-                                });
-*/
-
                             $('#boxSecCodeHelpContainer').detach().appendTo('li.sps-codigo-seguridad')
-/*                        }
-                        
-                        else
-                        {
-                            alert("Se produjo un error al procesar las cuotas. Por favor intentelo nuevamente");
-                            console.log(response);
-                        }
-                       
-                    }
-                    ,
-                    error    : function()
-                    {
-                        $('#sps-pagar-btn').hide();
-                        $('.adminplanes-loader').addClass('no-display-2');
-                        alert("Disculpe, tuvimos inconveniente. Intente nuevamente");
-                    }
-                    
-                });
-*/
-
-
-
 
                return false;
             },
@@ -499,11 +360,17 @@ define(
                     });
                 }
 
+                if(planSeleccionado.detalleReintegro)
+                {
+                    $('table.table-totals tbody').append(planSeleccionado.detalleReintegro);
+                }
+
                 $('.adminplanes-loader').addClass('no-display-2');
                 $('.sps-codigo-seguridad-token').removeClass('no-display-2');
                 $('button.aplicar-cuotas-token').hide();
                 $('#sps-pagar-btn-token').show();
                 console.log('Muestra botones de pagar con token');
+
 
             },
             cambiarPlan: function ()
@@ -522,12 +389,11 @@ define(
                 $('#sps-tarjeta-vencimiento').val('');
                 $('#sps-tarjeta-codigo-seguridad').val('');
                 $('#sps-email').val('');
-                $('#sps-request-key').val('');
                 $('#sps-tarjeta-codigo-seguridad-helper').val('');
 
                 $('.adminplanes-loader').removeClass('no-display-2');
 
-        console.log('1 RESET CAMBIAR PLAN en decidir-method.js');
+                console.log('1 RESET CAMBIAR PLAN en decidir-method.js');
                 $.ajax('/rest/V1/descuento/reset',
                 {
                     method  : 'GET',
@@ -573,7 +439,7 @@ define(
                         
                         $('tr.costo').hide();
                         $('.leyenda-cft').remove();
-                        
+                        $('.leyenda-tea').remove();
                     },
                     error   : function (e, status)
                     {
@@ -585,6 +451,7 @@ define(
             },
             getDetalleReintegro: function (reintegro,tipo)
             {
+                console.log('Método detallereintegro ejecutándose');
                 var trHtml = '';
                 $('.leyenda-reintegro').remove();
 
@@ -615,6 +482,9 @@ define(
                         "<span class='price'>- "+valor+"</span>" +
                         "</td>" +
                         "</tr>";
+
+
+                    console.log('Texto añadido HTML: ' + trHtml);   
                 }
 
                 return trHtml;
@@ -783,7 +653,7 @@ define(
             },
             cambiarTarjeta: function ()
             {
-        console.log('Descuento decidir-method RESET CAMBIARTARJETA');
+                console.log('Descuento decidir-method RESET CAMBIARTARJETA');
                 $.ajax('/rest/V1/descuento/reset',
                 {
                     method  : 'GET',
@@ -839,21 +709,12 @@ define(
                     }
                 });
                 
-                
-                
-
+                $('tr.leyenda-reintegro').remove();
+                $('.leyenda-reintegro').remove();
                 $('.tarjeta-almacenada').hide();
                 $('#selector-planes').show();
                 $('.tarjetas-disponibles').show();
                 $('.cuotas-disponibles').addClass('no-display-2');
-                $('script[src*="'+window.checkoutConfig.payment.paymentTokenJsDecidir+'"]').remove();
-
-                var paymentJsDecidir = document.createElement('script');
-                paymentJsDecidir.setAttribute('type', 'text/javascript');
-                paymentJsDecidir.setAttribute('src', window.checkoutConfig.payment.paymentJsDecidir + '?noxhr='
-                    + (new Date()).getTime());
-                $('head').append(paymentJsDecidir);
-
             },
             /**
              * Si no existe un token generado para el usuario, muestra el formulario de tarjetas y bancos, caso
@@ -866,6 +727,35 @@ define(
                 else
                     return true;
             },
+
+            obtenerToken: function () {
+                //OBTENER TOKEN DE PAGO Y HACER PAGO                
+                console.log('FUnción obtenerToken');
+                require(['jquery', 'jquery/ui'], function($){ 
+                    var form=window.document.querySelector('#decidir_spsdecidir-form');
+
+                    console.log('Placeorder: '+form);
+                    decidirSandbox.createToken(form, sdkResponseHandler);//formulario y callback 
+                });
+            },
+
+
+            pagarTarjetaTokenizada: function(){
+                console.log('decidir_cuota - ANTES - : '+decidir_cuota);
+                //Guarda en sesión el token a utilizar
+                //decidir_cuota=$("[name='plan']:checked").val();
+                console.log('decidir_cuota = '+decidir_cuota);
+
+
+                require(['jquery', 'jquery/ui'], function($){ 
+                    var form=window.document.querySelector('#decidir_spsdecidir-form-token');
+
+                    console.log('Placeorder: '+form);
+                    decidirSandbox.createToken(form, sdkResponseHandlerTokenizada);//formulario y callback 
+                });
+            },
+
+
             cambiarTarjetaTokenizada: function ()
             {
                 var tokenId = this.tarjeta_tokenizada();

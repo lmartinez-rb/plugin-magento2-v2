@@ -84,12 +84,12 @@ class Webservice
         if($this->_scopeConfig->getValue('payment/decidir_spsdecidir/mode') == self::MODE_DEV)
         {
             $this->_ambient = 'test';
-            $this->_endpoint = 'https://developers.decidir.com/api/v1';
+            $this->_endpoint = 'https://developers.decidir.com/api/v2';
         }
         elseif($this->_scopeConfig->getValue('payment/decidir_spsdecidir/mode') == self::MODE_PROD)
         {
             $this->_ambient = 'prod';
-            $this->_endpoint = 'https://live.decidir.com/api/v1';
+            $this->_endpoint = 'https://live.decidir.com/api/v2';
         }
         
 /*

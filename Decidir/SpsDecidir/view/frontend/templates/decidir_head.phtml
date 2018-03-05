@@ -26,7 +26,7 @@ $token = $this->getToken();
 
 
 
-<script src="https://live.decidir.com/static/v1/decidir.js"></script>
+<script src="https://live.decidir.com/static/v2.2.2/decidir.js"></script>
 <script type="text/javascript">
 const publicApiKey = '<?= $this->getPublicKey() ?>';
 const urlSandbox = '<?= $this->getUrlJs() ?>';
@@ -151,17 +151,12 @@ function sdkResponseHandler(status, response) {
 
           if(mensajeError.error.param=='expiry_date'){
             $('*[data-decidir-lbl="'+ mensajeError.error.param +'"]').text(mensajeError.error.message);
-            $('*[data-decidir-lbl="card_expiration_month"]').addClass('errorLbl');
+            $('*[data-decidir-lbl="'+ mensajeError.error.param +'"]').addClass('errorLbl');
             $('*[data-decidir="card_expiration_month"]').addClass('errorInput');   
 
             $('*[data-decidir-lbl="card_expiration_year"]').addClass('errorLbl');
             $('*[data-decidir="card_expiration_year"]').addClass('errorInput');   
-
-                     
           }
-
-
-
         });        
       });
   }

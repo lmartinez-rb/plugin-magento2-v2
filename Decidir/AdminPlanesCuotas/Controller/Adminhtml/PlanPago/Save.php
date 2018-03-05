@@ -10,6 +10,7 @@ namespace Decidir\AdminPlanesCuotas\Controller\Adminhtml\PlanPago;
  */
 class Save extends  \Magento\Backend\App\Action
 {
+
     /**
      * @var \Magento\Framework\View\Result\PageFactory
      */
@@ -35,6 +36,12 @@ class Save extends  \Magento\Backend\App\Action
      */
     protected $_planPagoProductoFactory;
 
+    /**
+     * @var \Magento\Framework\Stdlib\DateTime\TimezoneInterface
+     */
+    protected   $_timezoneInterface;
+
+
     const OPERACION_EXITOSA = 1;
     const OPERACION_FALLIDA = 0;
 
@@ -46,22 +53,28 @@ class Save extends  \Magento\Backend\App\Action
      * @param \Decidir\AdminPlanesCuotas\Model\CuotaFactory $cuotaFactory
      * @param \Decidir\AdminPlanesCuotas\Model\PlanPagoProductoFactory $productosAsociadosFactory
      * @param \Magento\Framework\Controller\Result\JsonFactory $resultJsonFactory
+     * @param \Magento\Framework\Stdlib\DateTime\TimezoneInterface $timezoneInterface     
      */
-    public function __construct(\Magento\Backend\App\Action\Context $context,
+    public function __construct(
+                                \Magento\Backend\App\Action\Context $context,
                                 \Magento\Framework\View\Result\PageFactory $resultPageFactory,
                                 \Decidir\AdminPlanesCuotas\Model\PlanPagoFactory $planPagoFactory,
                                 \Decidir\AdminPlanesCuotas\Model\CuotaFactory $cuotaFactory,
                                 \Decidir\AdminPlanesCuotas\Model\PlanPagoProductoFactory $productosAsociadosFactory,
-                                \Magento\Framework\Controller\Result\JsonFactory $resultJsonFactory
+                                \Magento\Framework\Controller\Result\JsonFactory $resultJsonFactory,
+                                \Magento\Framework\Stdlib\DateTime\TimezoneInterface $timezoneInterface                                
     ) {
         $this->_resultPageFactory         = $resultPageFactory;
         $this->_planPagoFactory           = $planPagoFactory;
         $this->_cuotaFactory              = $cuotaFactory;
         $this->_resultJsonFactory         = $resultJsonFactory;
         $this->_planPagoProductoFactory   = $productosAsociadosFactory;
+        $this->_timezoneInterface =  $timezoneInterface;
 
         parent::__construct($context);
     }
+
+
 
     /**
      * @return $this
@@ -108,8 +121,41 @@ class Save extends  \Magento\Backend\App\Action
             $planPago->setNombre(trim($postParams['nombre']));
             $planPago->setTarjetaId($postParams['tarjeta_id']);
             $planPago->setBancoId($postParams['banco_id']);
-            $planPago->setVigenteDesde(date('Y-m-d H:i:s',strtotime($postParams['vigente_desde'])));
-            $planPago->setVigenteHasta(date('Y-m-d H:i:s',strtotime($postParams['vigente_hasta'])));
+
+
+            $planPago->setVigenteHasta( 
+                $this->converToTz(
+                $postParams['vigente_hasta'],
+
+                // get default timezone of system (UTC)
+                $this->_timezoneInterface->getDefaultTimezone(),
+
+
+                // get Config Timezone of current user 
+                $this->_timezoneInterface->getConfigTimezone()
+
+                )
+            );
+
+            $planPago->setVigenteDesde( 
+                $this->converToTz(
+                $postParams['vigente_desde'],
+
+                // get default timezone of system (UTC)
+                $this->_timezoneInterface->getDefaultTimezone(),
+
+                // get Config Timezone of current user 
+                $this->_timezoneInterface->getConfigTimezone()
+
+                )
+            );
+
+
+
+
+
+
+
             $planPago->setPrioridad($postParams['prioridad']);
             $planPago->setMerchant($postParams['merchant']);
             $planPago->setDias(implode(',',$postParams['dias']));
@@ -179,4 +225,22 @@ class Save extends  \Magento\Backend\App\Action
        return $this->_authorization->isAllowed('Decidir_AdminPlanesCuotas::admin');
     }
 
+    /**
+     * converToTz convert Datetime from one zone to another
+     * @param string $dateTime which we want to convert
+     * @param string $toTz timezone in which we want to convert
+     * @param string $fromTz timezone from which we want to convert
+    */
+    protected function converToTz($dateTime="", $toTz='', $fromTz='')
+    {   
+        // timezone by php friendly values
+        $date = new \DateTime($dateTime, new \DateTimeZone($fromTz));
+        $date->setTimezone(new \DateTimeZone($toTz));
+        //$dateTime = $date->format('d/m/Y H:i:s');
+        
+        
+        $dateTime = $date->format(\Magento\Framework\Stdlib\DateTime::DATETIME_PHP_FORMAT);
+
+        return $dateTime;
+    }    
 }

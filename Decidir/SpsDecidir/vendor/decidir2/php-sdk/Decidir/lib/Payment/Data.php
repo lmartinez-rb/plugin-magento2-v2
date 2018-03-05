@@ -45,6 +45,9 @@ class Data extends \Decidir\Data\AbstractData {
 			"customer" => array(
 				"name" => "customer"
 			),
+			"site_id" => array(
+				"name" => "site_id"
+			),
 		));
 
 		parent::__construct($data);

@@ -85,7 +85,7 @@ class Descuento implements DescuentoInterface
                 if($quote->getDescuentoCuota() > 0)
                 {
                     \Magento\Framework\App\ObjectManager::getInstance()
-                   ->get(\Psr\Log\LoggerInterface::class)->debug( 'descuentoCuoeta 0 model/descuento ');  
+                    ->get(\Psr\Log\LoggerInterface::class)->debug('Model/Descuento.php - Aplica descuento - Plan tiene descuento');  
 
                     $quote->setGrandTotal($quote->getGrandTotal() + $quote->getDescuentoCuota());
                     $quote->setBaseGrandTotal($quote->getBaseGrandTotal() + $quote->getDescuentoCuota());
@@ -103,9 +103,9 @@ class Descuento implements DescuentoInterface
                 {
                     $descuentoFinal = $detallesCuota->getDescuento();
                 }
-                $quote->setGrandTotal(number_format($quote->getGrandTotal() - $descuentoFinal), 2);
-                $quote->setBaseGrandTotal(number_format($quote->getBaseGrandTotal() - $descuentoFinal), 2);
-				$grandTotal=number_format($quote->getGrandTotal(), 2);
+                $quote->setGrandTotal(number_format($quote->getGrandTotal() - $descuentoFinal, 2, ".", ""));
+                $quote->setBaseGrandTotal(number_format($quote->getBaseGrandTotal() - $descuentoFinal, 2, ".", ""));
+                $grandTotal=number_format($quote->getGrandTotal(), 2);
 				$baseGrandTotal=number_format($quote->getBaseGrandTotal(), 2);
 
 
@@ -120,7 +120,7 @@ class Descuento implements DescuentoInterface
             {
 
                 \Magento\Framework\App\ObjectManager::getInstance()
-                   ->get(\Psr\Log\LoggerInterface::class)->debug( 'descuentoCuoeta 0 model/descuento ii ');  
+                   ->get(\Psr\Log\LoggerInterface::class)->debug('Model/Descuento.php - Aplica descuento - Plan no tiene descuento');  
                 $quote->setDescuentoCuota(0);
                 $quote->setDescuentoCuotaDescripcion('');
             }
@@ -128,7 +128,10 @@ class Descuento implements DescuentoInterface
             $this->quoteRepository->save($quote->collectTotals());
 
         } catch (\Exception $e) {
-            throw new CouldNotSaveException(__('No se pudo agregar el descuento de cuota'));
+            \Magento\Framework\App\ObjectManager::getInstance()
+            ->get(\Psr\Log\LoggerInterface::class)->debug('Model/Descuento.php - Exception - Error: ' . $e);  
+
+            throw new CouldNotSaveException(__('No se pudo agregar el descuento de cuota - ERROR: ' . $e));
         }
 
 		return $quote->getDescuentoCuotaDescripcion();

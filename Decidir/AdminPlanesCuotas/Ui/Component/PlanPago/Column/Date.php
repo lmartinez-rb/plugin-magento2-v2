@@ -36,6 +36,7 @@ class Date extends Column
         array $data = []
     ) {
         $this->timezone = $timezone;
+
         parent::__construct($context, $uiComponentFactory, $components, $data);
     }
 
@@ -45,18 +46,47 @@ class Date extends Column
      */
     public function prepareDataSource(array $dataSource)
     {
+
+
         if (isset($dataSource['data']['items'])) {
             foreach ($dataSource['data']['items'] as & $item) {
                 if (isset($item[$this->getData('name')])) {
-                    $date = $this->timezone->date(new \DateTime($item[$this->getData('name')]),null,false);
-                    if (isset($this->getConfiguration()['timezone']) && !$this->getConfiguration()['timezone']) {
-                        $date = new \DateTime($item[$this->getData('name')]);
-                    }
-                    $item[$this->getData('name')] = $date->format('Y-m-d H:i:s');
+                    $fechaGtm=$this->converToTz(
+                        $item[$this->getData('name')], 
+                        
+                        // get Config Timezone of current user 
+                        $this->timezone->getConfigTimezone(),
+
+                        // get default timezone of system (UTC)
+                        $this->timezone->getDefaultTimezone()
+
+                    );
+                    $item[$this->getData('name')] = $fechaGtm;
+
                 }
             }
         }
 
         return $dataSource;
     }
+
+
+    /**
+     * converToTz convert Datetime from one zone to another
+     * @param string $dateTime which we want to convert
+     * @param string $toTz timezone in which we want to convert
+     * @param string $fromTz timezone from which we want to convert
+    */
+    protected function converToTz($dateTime="", $toTz='', $fromTz='')
+    {   
+        // timezone by php friendly values
+        $date = new \DateTime($dateTime, new \DateTimeZone($fromTz));
+        $date->setTimezone(new \DateTimeZone($toTz));
+        //$dateTime = $date->format('d/m/Y H:i:s');
+        
+        
+        $dateTime = $date->format(\Magento\Framework\Stdlib\DateTime::DATETIME_PHP_FORMAT);
+
+        return $dateTime;
+    }    
 }

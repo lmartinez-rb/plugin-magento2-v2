@@ -170,6 +170,7 @@
                     <item name="component" xsi:type="string">Magento_Ui/js/grid/columns/date</item>
                     <item name="dataType" xsi:type="string">date</item>
                     <item name="label" xsi:type="string" translate="true">Vigente desde</item>
+                    <item name="dateFormat" xsi:type="string" translate="true">MMM d, yyyy HH:mm:ss</item>                    
                 </item>
             </argument>
         </column>
@@ -180,6 +181,7 @@
                     <item name="component" xsi:type="string">Magento_Ui/js/grid/columns/date</item>
                     <item name="dataType" xsi:type="string">date</item>
                     <item name="label" xsi:type="string" translate="true">Vigente hasta</item>
+                    <item name="dateFormat" xsi:type="string" translate="true">MMM d, yyyy HH:mm:ss</item>
                 </item>
             </argument>
         </column>

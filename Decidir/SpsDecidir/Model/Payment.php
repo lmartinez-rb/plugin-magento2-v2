@@ -235,9 +235,11 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         $spsTransaccionesHelper = $this->_spsTransaccionesHelper;
         $customerSession        = $this->_customerSession;
 
-
-           
         $infoOperacionSps = $this->_spsHelper->getInfoTransaccionSPS();
+        if(!$infoOperacionSps){
+            return $this;
+        }
+
         \Magento\Framework\App\ObjectManager::getInstance()
         ->get(\Psr\Log\LoggerInterface::class)->debug('DECIDIR2 - MODEL PAYMENT - InfoOperacion: '.print_r($infoOperacionSps, true));        
 
@@ -279,6 +281,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
             $merchant = $planPagoData[0]['merchant'];
         }
 
+
         if(!$order->getCustomerId()){ //Usuario guest
             $customerId='guest';
         }else{
@@ -286,13 +289,14 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         }
 
 
+
             $ws = $this->_webservice;
             $data = array(
                 "site_transaction_id" => $order->getIncrementId(),
                 "token" => $infoOperacionSps['tokenPago'],
-                "customer" => array("id" => "$customerId", "email" => $customerSession->getCustomer()->getEmail()),
+                //"customer" => array("id" => "$customerId", "email" => $customerSession->getCustomer()->getEmail()),
                 "payment_method_id" => (int)$infoOperacionSps['tarjeta_id'],
-                "amount" => number_format($amount, 2),
+                "amount" => number_format($amount, 2, ".", ""),
                 "bin" => $infoOperacionSps['bin'],
                 "currency" => "ARS",
                 "installments" => (int)$cantidad_cuotas,
@@ -301,6 +305,11 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
                 "sub_payments" => array(),
                 "fraud_detection" => array()
             );
+
+            if($order->getCustomerId()){ //No es Usuario guest
+                $data["customer"] = array("id" => "$customerId", "email" => $customerSession->getCustomer()->getEmail());
+            }
+
             if(!empty($planPagoData[0]['merchant'])){
                 $data["site_id"]=$planPagoData[0]['merchant'];
             }
@@ -477,6 +486,8 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         }else{
             \Magento\Framework\App\ObjectManager::getInstance()
             ->get(\Psr\Log\LoggerInterface::class)->debug('Cybersource deshabilitado');  
+            \Magento\Framework\App\ObjectManager::getInstance()
+            ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR - PAYMENT MODEL - Paga sin CS - Data a enviar: '. print_r($data, true) );               
 
             try{         
                 $respuesta = $ws->pagar($data);     
@@ -520,19 +531,16 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
                 $orderTransactionIdSps="";
 
                 if($estado_transaccion == $spsTransaccionesHelper::TRANSACCION_OK){
-                    //if($estado_transaccion != $spsTransaccionesHelper::TRANSACCION_OK)
-                    //{
-                         \Magento\Framework\App\ObjectManager::getInstance()
-                        ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR2 - MODEL PAYMENT - Pago Rechazado - ' . $infoOperacionSps['detalles_pago'] ); 
-                        
-                        //throw new \Exception("Error"); 
-                    //}
+
                     \Magento\Framework\App\ObjectManager::getInstance()
                         ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR2 - MODEL PAYMENT - Pago aceptado' );                   
                     //$this->_messageManager->addSuccessMessage("error testing");
 
                     //Si el usuario está registrado
-                    if(!empty($order->getCustomerId())){                    
+                    if(!empty($order->getCustomerId())){
+                        \Magento\Framework\App\ObjectManager::getInstance()
+                            ->get(\Psr\Log\LoggerInterface::class)->debug( ' if linea 540' );                   
+
                         try{
                             $respuestaGetToken = $ws->getTarjetasTokenizadas(array(), $order->getCustomerId());
 
@@ -543,7 +551,16 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
                             ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR2 - MODEL PAYMENT - getTarjetasTokenizadas ERROR: '.$e );
                         }
 
+                        \Magento\Framework\App\ObjectManager::getInstance()
+                            ->get(\Psr\Log\LoggerInterface::class)->debug( 'Antes de guardarToken ' );                   
+
+
                         $helper->guardarToken( $respuestaGetToken->getTokens(), $respuesta );
+
+                        \Magento\Framework\App\ObjectManager::getInstance()
+                            ->get(\Psr\Log\LoggerInterface::class)->debug( 'Después de guardarToken ' );                   
+
+
                     }
 
 

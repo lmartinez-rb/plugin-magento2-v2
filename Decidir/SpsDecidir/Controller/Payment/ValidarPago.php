@@ -134,14 +134,20 @@ class ValidarPago extends Action
      */
     public function execute()
     {
-        $infoOperacionSps = $this->_spsHelper->getInfoTransaccionSPS();
-        //$mensajeEstado=print_r($infoOperacionSps, true);
+        try{
+            $infoOperacionSps = $this->_spsHelper->getInfoTransaccionSPS();
+            //$mensajeEstado=print_r($infoOperacionSps, true);
 
-        if($infoOperacionSps["estado_transaccion"]=="approved"){
-            $this->messageManager->addSuccessMessage($infoOperacionSps["transaccion_mensaje"]);
-            $this->_redirect('checkout/onepage/success');
-        }else{
-            $this->messageManager->addErrorMessage($infoOperacionSps["transaccion_mensaje"]);
+            if(isset($infoOperacionSps) AND $infoOperacionSps["estado_transaccion"]=="approved"){
+                $this->messageManager->addSuccessMessage($infoOperacionSps["transaccion_mensaje"]);
+                $this->_redirect('checkout/onepage/success');
+            }else{
+                if(isset($infoOperacionSps)){
+                    $this->messageManager->addErrorMessage($infoOperacionSps["transaccion_mensaje"]);
+                }
+                $this->_redirect('checkout/onepage/failure');
+            }
+        }catch(\Exception $e){
             $this->_redirect('checkout/onepage/failure');
         }
     }

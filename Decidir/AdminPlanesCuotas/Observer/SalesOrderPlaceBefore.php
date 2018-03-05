@@ -40,6 +40,11 @@ class SalesOrderPlaceBefore implements ObserverInterface
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
         $order = $observer->getEvent()->getOrder();
+        $quoteCart=$this->_quoteRepository->get($order->getQuoteId());
+        if(!$quoteCart->getIsActive($order->getQuoteId())){
+            return $this;
+        }
+
         $quote = $this->_quoteRepository->getActive($order->getQuoteId());
         $descuento = $quote->getDescuentoCuota();
 

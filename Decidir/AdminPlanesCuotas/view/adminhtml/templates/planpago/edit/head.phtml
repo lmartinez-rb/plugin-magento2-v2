@@ -14,4 +14,7 @@
     window.adminPlanesCuotasConfig.plan_pago= <?= \Zend_Json::encode($this->getPlanPago()) ?>;
     window.adminPlanesCuotasConfig.cuotas   = <?= \Zend_Json::encode($this->getCuotas()) ?>;
     window.adminPlanesCuotasConfig.promocionesCarrito   = <?= \Zend_Json::encode($this->getPromocionesCarrito()) ?>;
+    
+    window.adminPlanesCuotasConfig.vigente_desde_gmt   = "<?= \Zend_Json::encode($this->getVigenteDesdeGmt()) ?>";
+    
 </script>

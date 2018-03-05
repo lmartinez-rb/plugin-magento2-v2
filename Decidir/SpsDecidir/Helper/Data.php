@@ -117,8 +117,12 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         $blockCipher = \Zend\Crypt\BlockCipher::factory('mcrypt', array('algo' => 'aes'));
         $blockCipher->setKey(self::SECRET_WORD);
 
-        //print_r($this->_checkoutSession->getOperacionSps());
-        return unserialize($blockCipher->decrypt($this->_checkoutSession->getOperacionSps()));
+        $operacionSps=$this->_checkoutSession->getOperacionSps();
+        if($operacionSps){
+            return unserialize($blockCipher->decrypt($operacionSps));
+        }else{
+            return false;
+        }
     }
 
     /**
@@ -293,7 +297,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
                 ),
            
                 "currency" => "ARS",
-                "amount" => (int)number_format($order->getGrandTotal(), 2, ".", ""),
+                "amount" => number_format($order->getGrandTotal(), 2, ".", ""),
                 "days_in_site" => $this->diasTranscurridos($fecha_1, $fecha_2),
                 "is_guest" => $is_guest,
                 "password" => $pass,

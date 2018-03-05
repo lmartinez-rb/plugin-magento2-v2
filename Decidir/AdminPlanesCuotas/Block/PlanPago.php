@@ -102,8 +102,8 @@ class PlanPago extends Template
 
         $tarjetasDisponibles
             ->addFieldToFilter('main_table.activo', ['eq' => self::ACTIVO])
-            ->addFieldToFilter('main_table.vigente_desde', ['lteq' => date('Y-m-d h:i:s')])
-            ->addFieldToFilter('main_table.vigente_hasta', ['gteq' => date('Y-m-d h:i:s')]);
+            ->addFieldToFilter('main_table.vigente_desde', ['lteq' => date('Y-m-d H:i:s')])
+            ->addFieldToFilter('main_table.vigente_hasta', ['gteq' => date('Y-m-d H:i:s')]);
 
         $tarjetasDisponibles->getSelect()
             ->reset(\Magento\Framework\DB\Select::COLUMNS)
@@ -156,8 +156,8 @@ class PlanPago extends Template
 
         $bancosDisponibles
             ->addFieldToFilter('main_table.activo', ['eq' => self::ACTIVO])
-            ->addFieldToFilter('main_table.vigente_desde', ['lteq' => date('Y-m-d h:i:s')])
-            ->addFieldToFilter('main_table.vigente_hasta', ['gteq' => date('Y-m-d h:i:s')]);
+            ->addFieldToFilter('main_table.vigente_desde', ['lteq' => date('Y-m-d H:i:s')])
+            ->addFieldToFilter('main_table.vigente_hasta', ['gteq' => date('Y-m-d H:i:s')]);
 
         $bancosDisponibles->getSelect()
             ->reset(\Magento\Framework\DB\Select::COLUMNS)
@@ -204,8 +204,8 @@ class PlanPago extends Template
 
         $planesPagoDisponiblesSubquery
             ->addFieldToFilter('main_table.activo', ['eq' => self::ACTIVO])
-            ->addFieldToFilter('main_table.vigente_desde', ['lteq' => date('Y-m-d h:i:s')])
-            ->addFieldToFilter('main_table.vigente_hasta', ['gteq' => date('Y-m-d h:i:s')]);
+            ->addFieldToFilter('main_table.vigente_desde', ['lteq' => date('Y-m-d H:i:s')])
+            ->addFieldToFilter('main_table.vigente_hasta', ['gteq' => date('Y-m-d H:i:s')]);
 
         $planesPagoDisponiblesSubquery->getSelect()
             ->where('FIND_IN_SET(?, dias)', date('N'))
@@ -216,6 +216,11 @@ class PlanPago extends Template
             ->reset(\Magento\Framework\DB\Select::FROM)
             ->from($planesPagoDisponiblesSubquery->getSelect())
             ->group(['tarjeta_id','banco_id']);
+
+        /*
+        \Magento\Framework\App\ObjectManager::getInstance()
+        ->get(\Psr\Log\LoggerInterface::class)->debug('sql: '. $planesPagoDisponiblesSubquery->getSelect() );        
+        */
 
         $this->planesPago = $planesPagoDisponibles->getData();
 
