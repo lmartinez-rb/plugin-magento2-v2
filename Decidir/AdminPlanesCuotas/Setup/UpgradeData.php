@@ -78,6 +78,20 @@ class UpgradeData implements UpgradeDataInterface
 
           }
 
+
+          if ( version_compare( $context->getVersion(), '2.1.15' ) < 0 ) {
+            //tarjeta otros
+            $setup->updateTableRow(
+            $setup->getTable( 'decidir_banco' ),
+                'nombre',
+                'OTROS',
+
+                'logo_src',
+                'b_otros.png'
+            );
+          }
+
+
           $setup->endSetup();
           
      }

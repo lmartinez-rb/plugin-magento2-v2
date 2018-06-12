@@ -5,7 +5,16 @@
         <group name="totals">
             <item name="descuento" instance="Decidir\AdminPlanesCuotas\Model\Quote\Total\DescuentoCuota" sort_order="150"/>
             <item name="costo" instance="Decidir\AdminPlanesCuotas\Model\Quote\Total\Costo" sort_order="151"/>
-
         </group>
     </section>
+
+    <section name="order_invoice">
+        <group name="totals">
+            <item name="costo" instance="Decidir\AdminPlanesCuotas\Model\Invoice\Total\Costo" sort_order="160"/>
+            <item name="descuentocuota" instance="Decidir\AdminPlanesCuotas\Model\Invoice\Total\DescuentoCuota" sort_order="161"/>
+        </group>
+    </section>
+
+
+
 </config>

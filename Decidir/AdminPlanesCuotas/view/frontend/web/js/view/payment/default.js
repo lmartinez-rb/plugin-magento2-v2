@@ -219,11 +219,13 @@ define(
              * @return {Boolean}
              */
             selectPaymentMethod: function () {
+                $( "input[name='payment[method]']" ).prop('disabled', true); //Radiobox de cada medio de pago
 
                 /**
                  * Reseteo las selecciones de plan de pago y cuotas, al mismo tiempo que se limpia el formulario de
                  * tarjetas y elimina la layenda de reintegro de los totales.
                  */
+
                 $('tr.leyenda-reintegro').remove();
                 $('[name="tarjeta"]').prop('checked',false);
                 $('.box-tarjeta').removeClass('tarjeta-seleccionada');
@@ -280,15 +282,12 @@ define(
                         getPaymentInformationAction(deferred);
                         $.when(deferred).done(function () {
                             totals.isLoading(false);
+
+                            $( "input[name='payment[method]']" ).prop('disabled', false); //Radiobox de cada medio de pago
                         });
                         $('.decidir_costo').hide();
                         $('.leyenda-tea').hide();
                         $('.leyenda-cft').hide();
-
-
-			
-
-
                     },
                     error   : function (e, status)
                     {

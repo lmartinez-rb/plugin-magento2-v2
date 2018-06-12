@@ -88,7 +88,7 @@ class Save extends  \Magento\Backend\App\Action
         {
             $postParams = $request->getPost()->toArray();
 
-            if(!isset($postParams['nombre']) ||  strlen(trim($postParams['nombre'])) < 5
+            if(!isset($postParams['nombre']) 
             || !isset($postParams['vigente_desde']) || !isset($postParams['vigente_hasta']))
                 return $result->setData(['estado'=>self::OPERACION_FALLIDA]);
 

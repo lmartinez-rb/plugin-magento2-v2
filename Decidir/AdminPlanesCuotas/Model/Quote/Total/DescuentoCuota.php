@@ -80,8 +80,8 @@ class DescuentoCuota extends \Magento\Quote\Model\Quote\Address\Total\AbstractTo
                 $total->setDescuentoCuota($descuento);
                 $total->setBaseDescuentoCuota($descuento);
 
-                $total->setGrandTotal($total->getGrandTotal() + $descuento);
-                $total->setBaseGrandTotal($total->getBaseGrandTotal() + $descuento);
+                $total->setGrandTotal($total->getGrandTotal() );
+                $total->setBaseGrandTotal($total->getBaseGrandTotal());
 
                 $total->setSubtotalWithDiscount($total->getSubtotal() + $total->getDiscountAmount());
                 $total->setBaseSubtotalWithDiscount($total->getBaseSubtotal() + $total->getBaseDiscountAmount());

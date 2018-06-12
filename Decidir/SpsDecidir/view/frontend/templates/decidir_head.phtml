@@ -24,9 +24,6 @@ $token = $this->getToken();
 </script>
 
 
-
-
-<script src="https://live.decidir.com/static/v2.2.2/decidir.js"></script>
 <script type="text/javascript">
 const publicApiKey = '<?= $this->getPublicKey() ?>';
 const urlSandbox = '<?= $this->getUrlJs() ?>';
@@ -72,13 +69,21 @@ function sdkResponseHandler(status, response) {
           console.log('objeto html con detalles: '+$('.detalles-plan-seleccionado > li > span'));
           $('.detalles-plan-seleccionado > li > span').each(function(index,value)
           {
-              console.log('itera '+index+jQuery(this).text());
-              if(index == 0)
+              console.log('itera, index: '+index + 'texto: ' + jQuery(this).text());
+              console.log('index:('+ index +')');
+
+              if(index == 0){
+                  console.log('0-'+index);
                   decidir_detalles_pago += jQuery(this).text() + ' y ';
-              if(index == 1)
+              }
+              if(index == 1){
+                  console.log('1-'+index);
                   decidir_detalles_pago += jQuery(this).text() + ' en ';
-              if(index == 2)
+              }
+              if(index == 2){
+                  console.log('2-'+index);
                   decidir_detalles_pago += jQuery(this).text();
+              }
 
             console.log('1) decidir_detalles_pago = '+decidir_detalles_pago);    
           });
@@ -135,29 +140,55 @@ function sdkResponseHandler(status, response) {
       console.log('ERROR - STATUS: ' + status + ' - Respuesta: ' +response );
       console.log('RESPONSE: '+JSON.stringify(response) );
 
-      response.error.forEach(function(mensajeError){
-        console.log('Each type '+mensajeError.error.type);
-        console.log('Each message '+mensajeError.error.message);
-        console.log('Each param '+mensajeError.error.param);
-        require(['jquery', 'jquery/ui'], function($){
-          //$('*[data-decidir-lbl="card_holder_name"]').text('Error traza');
-          $('*[data-decidir-lbl="'+ mensajeError.error.param +'"]').text(mensajeError.error.message);
-
-          if(mensajeError.error.param!='expiry_date'){
+      if(response.error != null){
+        response.error.forEach(function(mensajeError){
+          console.log('Each type '+mensajeError.error.type);
+          console.log('Each message '+mensajeError.error.message);
+          console.log('Each param '+mensajeError.error.param);
+          require(['jquery', 'jquery/ui'], function($){
+            //$('*[data-decidir-lbl="card_holder_name"]').text('Error traza');
             $('*[data-decidir-lbl="'+ mensajeError.error.param +'"]').text(mensajeError.error.message);
-            $('*[data-decidir-lbl="'+ mensajeError.error.param +'"]').addClass('errorLbl');
-            $('*[data-decidir="'+ mensajeError.error.param +'"]').addClass('errorInput');
-          }
 
-          if(mensajeError.error.param=='expiry_date'){
-            $('*[data-decidir-lbl="'+ mensajeError.error.param +'"]').text(mensajeError.error.message);
-            $('*[data-decidir-lbl="'+ mensajeError.error.param +'"]').addClass('errorLbl');
-            $('*[data-decidir="card_expiration_month"]').addClass('errorInput');   
+            if(mensajeError.error.param!='expiry_date'){
+              $('*[data-decidir-lbl="'+ mensajeError.error.param +'"]').text(mensajeError.error.message);
+              $('*[data-decidir-lbl="'+ mensajeError.error.param +'"]').addClass('errorLbl');
+              $('*[data-decidir="'+ mensajeError.error.param +'"]').addClass('errorInput');
+            }
 
-            $('*[data-decidir-lbl="card_expiration_year"]').addClass('errorLbl');
-            $('*[data-decidir="card_expiration_year"]').addClass('errorInput');   
-          }
-        });        
+            if(mensajeError.error.param=='expiry_date'){
+              $('*[data-decidir-lbl="'+ mensajeError.error.param +'"]').text(mensajeError.error.message);
+              $('*[data-decidir-lbl="'+ mensajeError.error.param +'"]').addClass('errorLbl');
+              $('*[data-decidir="card_expiration_month"]').addClass('errorInput');   
+
+              $('*[data-decidir-lbl="card_expiration_year"]').addClass('errorLbl');
+              $('*[data-decidir="card_expiration_year"]').addClass('errorInput');   
+            }
+          });        
+        });
+      }
+
+
+
+      //Cuando devuelve solamente un error
+      if(response.validation_errors != null){
+        console.log('un error solo');
+        console.log(response.validation_errors);
+        console.log('code: '+response.validation_errors[0].code);
+        console.log('param: '+response.validation_errors[0].param);
+
+        if(response.validation_errors[0].code=='invalid_param'){
+          console.log('en if');
+          require(['jquery', 'jquery/ui'], function($){
+            $('*[data-decidir-lbl="'+ response.validation_errors[0].param +'"]').text(response.validation_errors[0].code);
+            $('*[data-decidir-lbl="'+ response.validation_errors[0].param +'"]').addClass('errorLbl');
+            $('*[data-decidir="'+ response.validation_errors[0].param +'"]').addClass('errorInput');
+          });
+        }
+      }
+
+
+      require(['jquery', 'jquery/ui'], function($){
+        $('#sps-pagar-btn').prop('disabled', false);
       });
   }
 }
@@ -183,9 +214,18 @@ function sdkResponseHandlerTokenizada(status, response) {
         $('.detalles-plan-seleccionado-token > li > span').each(function(index,value)
         {
             console.log('itera '+index+jQuery(this).text());
-            if(index == 0)
-                decidir_detalles_pago += jQuery(this).text();
-                console.log('1) decidir_detalles_pago = '+decidir_detalles_pago);    
+              if(index == 0){
+                  console.log('0-'+index);
+                  decidir_detalles_pago += jQuery(this).text() + ' y ';
+              }
+              if(index == 1){
+                  console.log('1-'+index);
+                  decidir_detalles_pago += jQuery(this).text() + ' en ';
+              }
+              if(index == 2){
+                  console.log('2-'+index);
+                  decidir_detalles_pago += jQuery(this).text();
+              }
         });
       });
       console.log('3) decidir_detalles_pago = '+decidir_detalles_pago);

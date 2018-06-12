@@ -77,13 +77,13 @@ class Costo implements CostoInterface
 				$grandTotal=$quote->getGrandTotal();
                 $baseGrandTotal=$quote->getBaseGrandTotal();
 
-				$baseGrandFinal = $quote->getGrandTotal() * $detallesCuota->getInteres();
-				$baseGrandFinal = $baseGrandFinal - $quote->getGrandTotal();
+				$baseGrandFinal = $quote->getSubtotal() * $detallesCuota->getInteres();
+				$baseGrandFinal = $baseGrandFinal - $quote->getSubtotal();
 				$quote->setCosto( $baseGrandFinal );
-
-        	    $quote->setGrandTotal( $baseGrandFinal + $grandTotal );
-	            $quote->setBaseGrandTotal( $baseGrandFinal + $baseGrandTotal  );
-
+/*
+        	    $quote->setGrandTotal( $quote->getGrandTotal()  );
+	            $quote->setBaseGrandTotal( $quote->getBaseGrandTotal()  );
+*/
 				$this->_checkoutSession->setAplicarCosto(true);
 				$this->quoteRepository->save($quote->collectTotals());		
 			}else{
@@ -97,12 +97,13 @@ class Costo implements CostoInterface
         }
         
 		if($detallesCuota->getInteres() > 1){
+            /*
             $quote->setGrandTotal( $baseGrandFinal + $grandTotal );
             $quote->setBaseGrandTotal( $baseGrandFinal + $baseGrandTotal  );
 
 
 			$this->quoteRepository->save($quote->collectTotals());
-
+*/
 
 			return 'Costo Financiero ';
 		}
@@ -133,8 +134,8 @@ class Costo implements CostoInterface
              */
             if($quote->getCosto() > 0)
             {
-                $quote->setGrandTotal($quote->getGrandTotal() - $quote->getCosto());
-                $quote->setBaseGrandTotal($quote->getBaseGrandTotal() - $quote->getCosto());
+                $quote->setGrandTotal($quote->getGrandTotal());
+                $quote->setBaseGrandTotal($quote->getBaseGrandTotal());
                 $quote->setCosto(0);
 
             }

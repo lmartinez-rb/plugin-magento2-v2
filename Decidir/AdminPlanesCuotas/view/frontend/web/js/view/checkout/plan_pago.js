@@ -103,7 +103,8 @@ define(
                     context : this,
                     success : function (response)
                     {
-                        var grandTotal  = response.totals.grand_total;
+                        var subtotal  = response.totals.subtotal;
+                        var grandTotal = response.totals.grand_total;
 
                         $('button.aplicar-plan').addClass('no-display-2');
                         $('.banco-seleccionado').removeClass('banco-seleccionado');
@@ -130,11 +131,12 @@ define(
 
                             $.each(cuotas[planId], function (index,val)
                             {
+
                                 var reintegroHtml = '';
                                 var descuentoHtml = '';
                                 var reintegroBox  = '';
                                 var interesHtml   = '';
-                                var totalCompra   = grandTotal;
+                                var totalCompra   = subtotal;
                                 var valorCuota;
                                 var importeTotalConDescuento;
 

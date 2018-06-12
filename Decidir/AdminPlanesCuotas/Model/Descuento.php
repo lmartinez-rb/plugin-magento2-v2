@@ -67,7 +67,6 @@ class Descuento implements DescuentoInterface
             throw new NoSuchEntityException(__('Cart %1 doesn\'t contain products', $cartId));
         }
         $quote->getShippingAddress()->setCollectShippingRates(true);
-		$a=$quote->getGrandTotal();
         try
         {
 
@@ -87,8 +86,8 @@ class Descuento implements DescuentoInterface
                     \Magento\Framework\App\ObjectManager::getInstance()
                     ->get(\Psr\Log\LoggerInterface::class)->debug('Model/Descuento.php - Aplica descuento - Plan tiene descuento');  
 
-                    $quote->setGrandTotal($quote->getGrandTotal() + $quote->getDescuentoCuota());
-                    $quote->setBaseGrandTotal($quote->getBaseGrandTotal() + $quote->getDescuentoCuota());
+                    $quote->setSubtotal($quote->getSubtotal() + $quote->getDescuentoCuota());
+                    $quote->setBaseSubtotal($quote->getBaseSubtotal() + $quote->getDescuentoCuota());
                     $quote->setDescuentoCuota(0);
                     $quote->setDescuentoCuotaDescripcion('');
                 }
@@ -96,18 +95,22 @@ class Descuento implements DescuentoInterface
                 if($detallesCuota->getTipoDescuento() == \Decidir\AdminPlanesCuotas\Model\Cuota::TIPO_DESCUENTO_PORCENTUAL
                 && $detallesCuota->getDescuento() < 100)
                 {
-                    $descuentoFinal = number_format((($detallesCuota->getDescuento() * $quote->getGrandTotal())/100),2);
+                    $descuentoFinal = number_format((($detallesCuota->getDescuento() * $quote->getSubtotal())/100),2);
                 }
                 if($detallesCuota->getTipoDescuento() == \Decidir\AdminPlanesCuotas\Model\Cuota::TIPO_DESCUENTO_NOMINAL
-                    && $quote->getGrandTotal() > $detallesCuota->getDescuento())
+                    && $quote->getSubtotal() > $detallesCuota->getDescuento())
                 {
                     $descuentoFinal = $detallesCuota->getDescuento();
                 }
+
+                /*
                 $quote->setGrandTotal(number_format($quote->getGrandTotal() - $descuentoFinal, 2, ".", ""));
                 $quote->setBaseGrandTotal(number_format($quote->getBaseGrandTotal() - $descuentoFinal, 2, ".", ""));
-                $grandTotal=number_format($quote->getGrandTotal(), 2);
-				$baseGrandTotal=number_format($quote->getBaseGrandTotal(), 2);
-
+                */
+                /*
+                $quote->setBaseSubtotal(number_format($quote->getBaseSubtotal() - $descuentoFinal, 2, ".", ""));
+                $quote->setSubtotal(number_format($quote->getSubtotal() - $descuentoFinal, 2, ".", ""));
+*/
 
                 $s = $detallesCuota->getCuota() == 1 ? '' : 's';
 
@@ -167,8 +170,8 @@ class Descuento implements DescuentoInterface
                 \Magento\Framework\App\ObjectManager::getInstance()
                    ->get(\Psr\Log\LoggerInterface::class)->debug( 'RESET descuentoCuoeta ');  
 
-                $quote->setGrandTotal($quote->getGrandTotal() + $quote->getDescuentoCuota());
-                $quote->setBaseGrandTotal($quote->getBaseGrandTotal() + $quote->getDescuentoCuota());
+                $quote->setSubtotal($quote->getSubtotal() + $quote->getDescuentoCuota());
+                $quote->setBaseSubtotal($quote->getBaseSubtotal() + $quote->getDescuentoCuota());
                 $quote->setDescuentoCuota(0);
                 $quote->setDescuentoCuotaDescripcion('');
             }

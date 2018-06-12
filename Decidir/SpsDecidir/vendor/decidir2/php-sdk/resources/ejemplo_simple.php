@@ -1,8 +1,11 @@
 <?php
 include_once dirname(__FILE__)."/../vendor/autoload.php";
 
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 $keys_data = array('public_key' => 'e9cdb99fff374b5f91da4480c8dca741',
-		   		   'private_key' => '92b71cf711ca41f78362a7134f87ff65');
+		   'private_key' => '92b71cf711ca41f78362a7134f87ff65');
 
 $ambient = "test";//valores posibles "test" o "prod"
 
@@ -23,21 +26,61 @@ echo("--------------------------------------------<br><br>");
 //------------------------ejecucion de pago--------------------------
 
 $data = array(
-			  "site_transaction_id" => "130717_06",
-			  "token" => "850c2092-ee57-45a7-ada3-d6075ff753ca",
-			  "customer" => array("id" => "usuario_prueba", "email" => "email@server.com"),
+			  "site_transaction_id" => "000000351",
+			  "token" => "6e479037-5dee-488f-b607-775cc79f89c4",
+			  "customer" => array("id" => "2", "email" => "magento@magento.com"),
 			  "payment_method_id" => 1,
-			  "amount" => 12.00,
+			  "amount" => 18.00,
 			  "bin" => "450799",
 			  "currency" => "ARS",
 			  "installments" => 1,
-			  "description" => "prueba",
+			  "description" => "Orden 000000351",
 			  "payment_type" => "single",
 			  "establishment_name" => "Establecimiento test",
 			  "sub_payments" => array(),
 			  "fraud_detection" => array()
 );
 
+
+/*AMEX payment data
+$data = array(
+	"site_transaction_id" => "310717_13",
+	"token" => "14fa3c3b-06d4-4b2e-a1c0-8685dbb2852f",
+	"customer" => array("id" => "usuario_prueba", "email" => "email@server.com"),
+	"payment_method_id" => 1,
+	"amount" => 12.00,
+	"bin" => "450799",
+	"currency" => "ARS",
+	"installments" => 1,
+	"description" => "prueba",
+	"payment_type" => "single",
+	"establishment_name" => "Establecimiento test",
+	"sub_payments" => array(),
+	"fraud_detection" => array(),
+	"aggregate_data" => array(
+		"indicator" => "1",
+		"identification_number" => "30598910045", 
+		"bill_to_pay" => "Decidir_Test",
+		"bill_to_refund" => "Decidir_Test",
+		"merchant_name" => "DECIDIR",
+		"street" => "Lavarden",
+		"number" => "247",
+		"postal_code" => "C1437FBE",
+		"category" => "05044",
+		"channel" => "005",
+		"geographic_code" => "C1437",
+		"city" => "Ciudad de Buenos Aires",
+		"merchant_id" => "decidir_Agregador",
+		"province" => "Buenos Aires",
+		"country" => "Argentina",
+		"merchant_email" => "merchant@mail.com",
+		"merchant_phone" => "+541135211111") 
+	);
+
+var_dump($data, true);
+*/
+
+/*
 //Datos Cybersource retail
 $cs_data = array(
 				"send_to_cs" => true,
@@ -106,38 +149,57 @@ $cs_products = array(
         "csitunitprice" => 6.00
     )
 );
-
-$cybersource = new \Decidir\Cybersource\Retail($cs_data, $cs_products);
+*/
+//$cybersource = new \Decidir\Cybersource\Retail($cs_data, $cs_products);
 //$cybersource = new \Decidir\Cybersource\DigitalGoods($cs_data, $cs_products);
 //$cybersource = new \Decidir\Cybersource\Ticketing($cs_data, $cs_products);
 //$cybersource = new \Decidir\Cybersource\Travel($cs_data, $cs_passenger);
 //$cybersource = new \Decidir\Cybersource\Service($cs_data, $cs_products);
-
+/*
 echo("Cybersource Data<br>");
 var_dump($cybersource->getData());
 echo("<br>----------------------------------<br><br>");
-
-$connector->payment()->setCybersource($cybersource->getData());
+*/
+//$connector->payment()->setCybersource($cybersource->getData());
 
 try {
 	$response = $connector->payment()->ExecutePayment($data);
 	echo("Respuest payment<br>");
 	print_r($response);
-
+	
 	echo("<br><br>");
 	echo("Status: ".$response->getStatus()."<br><br>");
 
 	echo("Status detail<br>");
+	
+	echo("site tranaction:".$response->getSiteTransactionId()."<br>");
 	echo("Ticket:".$response->getStatus_details()->ticket."<br>");
 	echo("Card Authorization Code: ".$response->getStatus_details()->card_authorization_code."<br>");
 	echo("Address Validation Code : ".$response->getStatus_details()->address_validation_code."<br>");
-	var_dump($response->getStatus_details()->error);//echo(print_r($response->getStatus_details()->error,true));
+	var_dump($response->getStatus_details()->error);//echo(print_r($response->getStatus_details()->error,true));	
+	
 
 } catch(\Exception $e) {
 	echo("Error Respuest payment<br>");
 	var_dump($e->getData());
 }
 
+//--------------------------captura de pago---------------------------
+/*
+$data_capturapago = array(
+					"amount" =>  12.00
+					);
+
+try {
+	$response = $connector->payment()->CapturePayment('961574', $data_capturapago);
+	echo("Respuesta de captura de pago<br>");
+	print_r($response);
+
+} catch(\Exception $e) {
+	echo("Error Respuest payment<br>");
+	var_dump($e->getData());
+}
+*/
 //--------------------------lista de pagos----------------------------
 /*
 $data = array();
@@ -153,61 +215,55 @@ echo("Offset: ".$response->getOffset()."<br>");
 echo("Result:");
 var_dump($response->getResults());
 echo("HasMore: ".$response->getHasMOre()."<br>");
-
+*/
 
 //------------------------informacion de pago------------------------------
-
+/*
 $data = array();
+$query = array("expand"=>"card_data");
 
 var_dump(json_encode($data));
 echo("<br>");
 
-$response = $connector->payment()->PaymentInfo($data, '575625');
+$response = $connector->payment()->PaymentInfo($data, '961564', $query);
+
+//print_r($response);
 
 echo("Respuesta informacion de pago<br>");
 if($response->getStatus() == "approved"){
-	echo($response->getId()."<br>");
-	echo($response->getToken()."<br>");
-	echo($response->getUserId()."<br>");
-	echo($response->getAmount()."<br>");
+		print_r($response);
 }else{
 	print_r($response->getValidationErrors());
 }
-
-
+*/
 //-------------------------devolucion----------------------------------
-
+/*
 $data = array();
 
 var_dump(json_encode($data));
 echo("<br>");
-$response = $connector->payment()->Refund($data, '575499');
+$response = $connector->payment()->Refund($data, '961564');
 
 echo("Respuest anulacion-devolucion total<br>");
-var_dump($response);
-echo($response->getId()."<br>");
-echo($response->getAmount()."<br>");
-var_dump($response->getSubPayments());
-echo($response->getStatus()."<br>");
-
-
+print_r($response);
+*/
 //------------------------anular devolucion total------------------------
-
+/*
 $data = array();
 
 var_dump(json_encode($data));
 echo("<br>");
 
-$response = $connector->payment()->deleteRefund($data, '574940', '271');
+$response = $connector->payment()->deleteRefund($data, '961467', '11196');
 
 echo("Respuesta de anulacion de devolucion<br>");
 var_dump($response);
-echo($response->getResponse());
-echo($response->getstatus());
-
+//echo($response->getResponse());
+//echo($response->getstatus());
+*/
 
 //-------------------------devolucion parcial--------------------------
-
+/*
 $data = array(
 		"amount" => 5.00
 	);
@@ -222,10 +278,10 @@ echo("Monto: ".$response->getAmount()."<br>");
 echo("Subpayment: <br>");
 var_dump($response->getSubPayments());
 echo("Status:".$response->getStatus()."<br>");
-
+*/
 
 //------------------------anulacion de devolucion--------------------------
-
+/*
 $data = array();
 
 $response = $connector->payment()->deletePartialRefund($data, '575503', '638');
@@ -237,7 +293,7 @@ echo("Respuesta: ".$response->getResponse());
 echo("Status: ".$response->getstatus());
 echo("Tipo de error:".$response->getErrorType());
 echo("Errores: ".$response->getValidationErrors());
-
+*/
 
 //---------------------------------------------------------------------
 //---------------------------------------------------------------------
@@ -246,25 +302,194 @@ echo("Errores: ".$response->getValidationErrors());
 //---------------------------------------------------------------------
 
 //----------------------Listado de tarjetas tokenizadas --------------------
-
+/*
 $response = $connector->cardToken()->tokensList($data, "pepe");
 echo("Respuesta de listado de tarjetas tokenizadas<br>");
 var_dump($response);
 echo("<br>---------------<br>");
 echo("Token:");
 var_dump($response->getTokens());
-
+*/
 
 //------------------------Eliminacion de token------------------------
-
+/*
 echo("Request servicio eliminacion de token<br>");
 $data = array();
 
-$response = $connector->cardToken()->tokenCardDelete($data, '7bed5c10-a70b-4c6d-92b2-4d9170b1c0e4');
+$response = $connector->cardToken()->tokenCardDelete($data, '00354341-6e64-4dc9-9fc9-c99611a1f950');
 echo("Respuest payment<br>");
-var_dump($response);
+print_r($response);
+*/
 
-echo("Error type:".$response->getErrorType());
-echo("Nombre: ".$response->getEntityName());
-echo("Id".$response->getId());
+//---------------------------------------------------------------------
+//---------------------------------------------------------------------
+//-------------------------PAGO OFFLINE--------------------------------
+//---------------------------------------------------------------------
+//---------------------------------------------------------------------
+
+//---------------------- Payment offline Rapipago------------------------------
+/*
+$data = array(
+	"site_transaction_id" => "250518_40",
+	"token" => "7b9bf22b-e9a5-4068-924a-0e0f4e2d7b3c",
+	"payment_method_id" => 26,
+	"amount" => 10.00,
+	"currency" => "ARS",
+	"payment_type" => "single",
+	"email" => "user@mail.com",
+	"invoice_expiration" => "191123",
+	"cod_p3" => "12",
+	"cod_p4" => "134",
+	"client" => "12345678",
+	"surcharge" => 10.01,
+	"payment_mode" => "offline"
+);
+
+print_r($data,true);
+echo("<br>");
+
+try {
+	$response = $connector->payment()->ExecutePaymentOffline($data);
+	echo("Respuest payment offline Rapipago<br>");
+	
+	print_r($response);
+
+} catch(\Exception $e) {
+	echo("Error Respuest payment<br>");
+	var_dump($e->getData());
+}
+*/
+//---------------------- Payment offline Pago mis Cuentas------------------------------
+/*
+$data = array(
+	"site_transaction_id" => "230518_41",
+	"token" => "0320e7da-d491-4f46-8753-db3966ee9aa5",
+	"payment_method_id" => 41,
+	"amount" => 10.00,
+	"currency" => "ARS",
+	"payment_type" => "single",
+	"email" => "user@mail.com",
+	"bank_id" => 1,
+	"sub_payments" => 100,
+	"invoice_expiration" => "191123"
+);
+
+print_r($data,true);
+echo("<br>");
+
+try {
+	
+	$response = $connector->payment()->ExecutePaymentOffline($data);
+	echo("Respuest payment offline PMC<br>");
+	
+	print_r($response);
+	
+
+} catch(\Exception $e) {
+	echo("Error Respuest payment<br>");
+	var_dump($e->getData());
+}
+*/
+//---------------------- Payment offline Pago Facil------------------------------
+/*
+$data = array(
+	"site_transaction_id" => "230518_42",
+	"token" => "68030d99-eed2-44c6-bd05-31b943c55bed",
+	"payment_method_id" => 25,
+	"amount" => 10.00,
+	"currency" => "ARS",
+	"payment_type" => "single",
+	"email" => "user@mail.com",
+	"invoice_expiration" => "191123",
+	"cod_p3" => "12",
+	"cod_p4" => "134",
+	"client" => "12345678",
+	"surcharge" => 10.01,
+	"payment_mode" => "offline"
+);
+
+print_r($data,true);
+echo("<br>");
+
+try {
+	
+	$response = $connector->payment()->ExecutePaymentOffline($data);
+	echo("Respuest payment offline Pago Facil<br>");
+	
+	print_r($response);
+	
+
+} catch(\Exception $e) {
+	echo("Error Respuest payment<br>");
+	var_dump($e->getData());
+}
+*/
+//---------------------- Payment offline Cobro Express------------------------------
+/*
+$data = array(
+	"site_transaction_id" => "160518_43",
+	"token" => "dc2cd96c-08d9-461d-a76c-01d3503fdf4f",
+	"payment_method_id" => 51,
+	"amount" => 10.00,
+	"currency" => "ARS",
+	"payment_type" => "single",
+	"email" => "user@mail.com",
+	"invoice_expiration" => "191123",
+	"second_invoice_expiration" => "191123",
+	"cod_p3" => "1",
+	"cod_p4" => "134",
+	"client" => "12345678",
+	"surcharge" => 10.01,
+	"payment_mode" => "offline"
+);
+
+print_r($data,true);
+echo("<br>");
+
+try {
+	
+	$response = $connector->payment()->ExecutePaymentOffline($data);
+	echo("Respuest payment offline Cobro Express<br>");
+	
+	print_r($response);
+	
+
+} catch(\Exception $e) {
+	echo("Error Respuest payment<br>");
+	var_dump($e->getData());
+}
+*/
+//---------------------- Payment offline Caja de Pagos------------------------------
+/*
+$data = array(
+	"site_transaction_id" => "220518_44",
+	"token" => "5ab6acdb-6272-44d1-8412-cd5934973683",
+	"payment_method_id" => 48,
+	"amount" => 10.00,
+	"currency" => "ARS",
+	"payment_type" => "single",
+	"email" => "user@mail.com",
+	"invoice_expiration" => "191123",
+	"second_invoice_expiration" => "191123",
+	"cod_p3" => "1",
+	"client" => "12345678",
+	"surcharge" => 10.01,
+	"payment_mode" => "offline"
+);
+
+print_r($data,true);
+echo("<br>");
+
+try {
+	
+	$response = $connector->payment()->ExecutePaymentOffline($data);
+	echo("Respuest payment offline Caja de Pagos<br>");
+	
+	print_r($response);
+	
+
+} catch(\Exception $e) {
+	echo("Error Respuest payment<br>");
+	var_dump($e->getData());
+}
 */

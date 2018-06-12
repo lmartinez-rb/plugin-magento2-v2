@@ -1,7 +1,7 @@
 <?php
-namespace Decidir\Payment;
+namespace Decidir\PaymentOffline;
 
-class Data extends \Decidir\Data\AbstractData {
+class DataCobroExp extends \Decidir\Data\AbstractData {
 
 	public function __construct(array $data) {
 
@@ -15,41 +15,38 @@ class Data extends \Decidir\Data\AbstractData {
 			"payment_method_id" => array(
 				"name" => "payment_method_id"
 			),
-			"bin" => array(
-				"name" => "bin"
-			),
 			"amount" => array(
 				"name" => "amount"
 			),
 			"currency" => array(
 				"name" => "currency"
 			),
-			"description" => array(
-				"name" => "description"
-			),
-			"installments" => array(
-				"name" => "installments"
-			),
 			"payment_type" => array(
 				"name" => "payment_type"
 			),
-			"establishment_name" => array(
-				"name" => "establishment_name"
+			"email" => array(
+				"name" => "email"
 			),
-			"sub_payments" => array(
-				"name" => "sub_payments"
+			"invoice_expiration" => array(
+				"name" => "invoice_expiration"
 			),
-			"aggregate_data" => array(
-				"name" => "aggregate_data"
+			"second_invoice_expiration" => array(
+				"name" => "invoice_expiration"
 			),
-			"fraud_detection" => array(
-				"name" => "fraud_detection"
+			"cod_p3" => array(
+				"name" => "cod_p3"
 			),
-			"customer" => array(
-				"name" => "customer"
+			"cod_p4" => array(
+				"name" => "cod_p4"
 			),
-			"site_id" => array(
-				"name" => "site_id"
+			"client" => array(
+				"name" => "client"
+			),
+			"surcharge" => array(
+				"name" => "surcharge"
+			),
+			"payment_mode" => array(
+				"name" => "payment_mode"
 			),
 		));
 

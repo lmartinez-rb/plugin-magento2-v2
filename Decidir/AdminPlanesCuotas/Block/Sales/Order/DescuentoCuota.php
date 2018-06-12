@@ -104,10 +104,10 @@ class DescuentoCuota extends \Magento\Framework\View\Element\Template
             );
 
             $parent->addTotal($descuentoCuota, 'descuento');
-            $parent->getTotal('grand_total')->setValue($parent->getTotal('grand_total')->getValue() - $order->getDescuentoCuota());
+            $parent->getTotal('grand_total')->setValue($parent->getTotal('grand_total')->getValue() );
 
             if($parent->getTotal('paid'))
-                $parent->getTotal('paid')->setValue($parent->getTotal('paid')->getValue() - $order->getDescuentoCuota());
+                $parent->getTotal('paid')->setValue($parent->getTotal('paid')->getValue() );
 
         }
 

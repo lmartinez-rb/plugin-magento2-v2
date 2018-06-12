@@ -120,10 +120,10 @@ class Costo extends \Magento\Framework\View\Element\Template
             );
 
             $parent->addTotal($descuentoCuota, 'costo');
-            $parent->getTotal('grand_total')->setValue($parent->getTotal('grand_total')->getValue() + $order->getCosto());
+            $parent->getTotal('grand_total')->setValue($parent->getTotal('grand_total')->getValue());
 
             if($parent->getTotal('paid'))
-                $parent->getTotal('paid')->setValue($parent->getTotal('paid')->getValue() + $order->getCosto());
+                $parent->getTotal('paid')->setValue($parent->getTotal('paid')->getValue() );
 
         }
 

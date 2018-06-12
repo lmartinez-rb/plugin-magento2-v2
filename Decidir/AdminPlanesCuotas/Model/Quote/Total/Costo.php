@@ -29,18 +29,18 @@ class Costo extends \Magento\Quote\Model\Quote\Address\Total\AbstractTotal
         \Magento\Quote\Model\Quote\Address\Total $total
     ) {
         parent::collect($quote, $shippingAssignment, $total);
-        $descuento = $quote->getCosto();
+        $costo = $quote->getCosto();
 
-        $balance = $descuento;
+        $balance = $costo;
 
-        $total->setTotalAmount('costo', $balance);
-        $total->setBaseTotalAmount('costo', $balance);
+        $total->addTotalAmount('costo', $balance);
+        $total->addBaseTotalAmount('costo', $balance);
 
         $total->setCosto($balance);
         $total->setBaseCosto($balance);
 
-        $total->setGrandTotal($total->getGrandTotal() + $balance);
-        $total->setBaseGrandTotal($total->getBaseGrandTotal() + $balance);        
+        $total->setGrandTotal($total->getGrandTotal() );
+        $total->setBaseGrandTotal($total->getBaseGrandTotal() );        
 
         return $this;
         

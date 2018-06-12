@@ -10,6 +10,9 @@
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="1column" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <head>
         <css src="Decidir_SpsDecidir::css/sps_decidir.css"/>
+
+        <script src="https://live.decidir.com/static/v2.2.2/decidir.js" src_type="url" />
+
     </head>
     <body>
         <!--<referenceBlock name="contenthead.additional">-->

@@ -491,13 +491,16 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
 
             try{         
                 $respuesta = $ws->pagar($data);     
+
+                \Magento\Framework\App\ObjectManager::getInstance()
+                ->get(\Psr\Log\LoggerInterface::class)->debug('respuesta pago Sin CS: '.print_r($respuesta, true) );                   
             }catch(\Exception $e){
                     \Magento\Framework\App\ObjectManager::getInstance()
-                    ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR - PAYMENT MODEL - Error en Pago realizado sin Cybersource: '.$e );     
+                    ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR - PAYMENT MODEL - Error en Pago realizado sin Cybersource: '.print_r($e->getData(), true) );     
+
+                    return $this;
             }
 
-            \Magento\Framework\App\ObjectManager::getInstance()
-            ->get(\Psr\Log\LoggerInterface::class)->debug('respuesta pago Sin CS: '.print_r($respuesta, true) );                   
         }
 
 
@@ -584,6 +587,20 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
                     $payment->addTransactionCommentsToOrder($transaction, $mensajeEstado);
 
                     $this->invoice($payment,$infoOperacionSps['detalles_pago']);
+
+                    \Magento\Framework\App\ObjectManager::getInstance()
+                        ->get(\Psr\Log\LoggerInterface::class)->debug( 'Inovoice-infoOperacionSps : ' . print_r($infoOperacionSps, true) );
+
+                    \Magento\Framework\App\ObjectManager::getInstance()
+                        ->get(\Psr\Log\LoggerInterface::class)->debug( 'Inovoice-mensajeEstado : ' . $mensajeEstado );
+
+                    \Magento\Framework\App\ObjectManager::getInstance()
+                        ->get(\Psr\Log\LoggerInterface::class)->debug( 'Inovoice-amount : ' . $amount );
+
+
+
+
+
 
                     $infoOperacionSps['transaccion_mensaje']=$mensajeEstado;
                     $helper->setInfoTransaccionSPS($infoOperacionSps);

@@ -1,7 +1,7 @@
 <?php
-namespace Decidir\Payment;
+namespace Decidir\PaymentOffline;
 
-class Data extends \Decidir\Data\AbstractData {
+class DataPMC extends \Decidir\Data\AbstractData {
 
 	public function __construct(array $data) {
 
@@ -15,42 +15,27 @@ class Data extends \Decidir\Data\AbstractData {
 			"payment_method_id" => array(
 				"name" => "payment_method_id"
 			),
-			"bin" => array(
-				"name" => "bin"
-			),
 			"amount" => array(
 				"name" => "amount"
 			),
 			"currency" => array(
 				"name" => "currency"
 			),
-			"description" => array(
-				"name" => "description"
+			"email" => array(
+				"name" => "email"
 			),
-			"installments" => array(
-				"name" => "installments"
+			"invoice_expiration" => array(
+				"name" => "invoice_expiration"
 			),
 			"payment_type" => array(
 				"name" => "payment_type"
 			),
-			"establishment_name" => array(
-				"name" => "establishment_name"
-			),
 			"sub_payments" => array(
 				"name" => "sub_payments"
 			),
-			"aggregate_data" => array(
-				"name" => "aggregate_data"
-			),
-			"fraud_detection" => array(
-				"name" => "fraud_detection"
-			),
-			"customer" => array(
-				"name" => "customer"
-			),
-			"site_id" => array(
-				"name" => "site_id"
-			),
+			"bank_id" => array(
+				"name" => "bank_id"
+			)
 		));
 
 		parent::__construct($data);
