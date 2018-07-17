@@ -10,6 +10,7 @@ use Decidir\SpsDecidir\Model\DecidirTokenFactory;
 use Decidir\AdminPlanesCuotas\Model\CuotaFactory;
 use Decidir\AdminPlanesCuotas\Model\PlanPagoFactory;
 use Magento\Payment\Helper\Data as PaymentHelper;
+use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
 
 
 
@@ -129,6 +130,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
      */
     protected $_paymentHelper;
 
+    protected $_remote;
 
     /**
      * Payment constructor.
@@ -155,6 +157,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
      * @param \Decidir\AdminPlanesCuotas\Model\CuotaFactory
      * @param \Decidir\AdminPlanesCuotas\Model\PlanPagoFactory
      * @param PaymentHelper $paymentHelper     
+     * @param \Magento\Framework\HTTP\PhpEnvironment\RemoteAddress $remote
      * @param array $data
      */
     public function __construct(
@@ -179,6 +182,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         \Decidir\AdminPlanesCuotas\Model\CuotaFactory $cuotaFactory,
         \Decidir\AdminPlanesCuotas\Model\PlanPagoFactory $planPagoFactory,
         PaymentHelper $paymentHelper,
+        \Magento\Framework\HTTP\PhpEnvironment\RemoteAddress $remote,
 
         /**
          * Cuando se agregan dependencias en el metodo de pago, siempre tienen que estar antes del AbstractResource y
@@ -202,6 +206,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         $this->_planPagoFactory        = $planPagoFactory;
         $this->_moduleList             = $moduleList;
         $this->_paymentHelper = $paymentHelper;
+        $this->_remote        = $remote;
 
 
 
@@ -307,7 +312,12 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
             );
 
             if($order->getCustomerId()){ //No es Usuario guest
-                $data["customer"] = array("id" => "$customerId", "email" => $customerSession->getCustomer()->getEmail());
+                $data["customer"] = array(
+                    "id" => "$customerId", 
+                    "email" => $customerSession->getCustomer()->getEmail(),
+                    "ip_address" => $this->_remote->getRemoteAddress(),
+
+                );
             }
 
             if(!empty($planPagoData[0]['merchant'])){
