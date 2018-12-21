@@ -10,7 +10,7 @@
     <system>
         <section id="payment">
             <group id="decidir_spsdecidir" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>SPS DECIDIR 2 v2.1.16</label>
+                <label>SPS DECIDIR 2 v2.2.0</label>
                 <comment>
                     <![CDATA[<h3>Modulo de pago SPS DECIDIR 2</h3>]]>
                 </comment>
@@ -40,11 +40,6 @@
                 <field id="mode" translate="label" type="select" sortOrder="7" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Modo</label>
                     <source_model>Decidir\SpsDecidir\Model\Source\Mode</source_model>
-                </field>
-                <field id="order_status" translate="label" type="select" sortOrder="8" showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>Estado de ordenes aprobadas</label>
-                    <source_model>Magento\Sales\Model\Config\Source\Order\Status</source_model>
-                    <comment>Indica el estado en el que quedará una orden al ser aprobada por decidir.</comment>
                 </field>
                 <field id="cybersource" translate="label" type="select" sortOrder="9" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Cybersource habilitado</label>
@@ -76,6 +71,34 @@
                     <!--<field id="allowspecific" translate="label" type="text" sortOrder="8" showInDefault="1" showInWebsite="1" showInStore="0">-->
                     <!--<label>Allow specific</label>-->
                 <!--</field>-->
+                <field id="tokenizacion" translate="label" type="select" sortOrder="12" showInDefault="1" showInWebsite="1" showInStore="0">
+                   <label>Tokenizacion habilitado</label>
+                   <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                   <comment>Habilita o deshabilita Tokenización de tarjeta</comment>
+               </field>
+                <group id="estado" translate="label" type="text" sortOrder="300" showInDefault="1" showInWebsite="1" showInStore="1">
+                   <label>Estados del Pedido</label>
+                                 <!-- estado que estaba es el order_status-->                    
+                   <field id="inicial" translate="label" type="select" sortOrder="13" showInDefault="1" showInWebsite="1" showInStore="0">
+                       <label>Estado inical del pedido</label>
+                       <comment>Para pagos con tarjetas de credito mientras espera respuesta del gateway</comment>
+                       <source_model>Magento\Sales\Model\Config\Source\Order\Status</source_model>
+                   </field>                    
+                   <field id="aprobado" translate="label" type="select" sortOrder="13" showInDefault="1" showInWebsite="1" showInStore="0">
+                       <label>Estado del pedido cuando el pago es aprobado</label>
+                       <comment>Estado final informado por el medio de pago</comment>
+                       <source_model>Magento\Sales\Model\Config\Source\Order\Status</source_model>
+                   </field>
+                   <field id="rechazado" translate="label" type="select" sortOrder="14" showInDefault="1" showInWebsite="1" showInStore="0">
+                       <label>Estado del pedido cuando el pago es rechazado</label>
+                       <comment>Cuando por cualquier motivo la transaccion fue denegada</comment>
+                       <source_model>Magento\Sales\Model\Config\Source\Order\Status</source_model>
+                   </field>
+                   <!--field id="offline" translate="label" type="select" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="0">
+                       <label>Estado del pedido cuando se selecciona algun tipo de off-line</label>
+                       <source_model>Magento\Sales\Model\Config\Source\Order\Status</source_model>
+                   </field-->
+                 </group>
 
             </group>
         </section>

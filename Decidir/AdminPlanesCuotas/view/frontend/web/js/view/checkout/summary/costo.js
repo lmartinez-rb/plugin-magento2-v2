@@ -26,16 +26,16 @@ define(
             getValue: function() {
                 var price = 0;
                 if (this.totals()) {
-                    console.log('metodo getValue = '+this.totals());
-                    console.log(this.totals());
+                    //console.log('metodo getValue = '+this.totals());
+                    //console.log(this.totals());
 
                     price = totals.getSegment('decidir_costofinanciero').value;
-                    console.log('price='+price);
+                    //console.log('price price price price=',price);
                 }
                 return this.getFormattedPrice(price);
             },
             getBaseValue: function() {
-                console.log('metodo getBaseValue');
+                //console.log('metodo getBaseValue');
                 /*
                 var price = 0;
                 if (this.totals()) {

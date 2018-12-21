@@ -25,14 +25,15 @@ define(
             },
             getValue: function()
             {
-                console.log('gettvalue descuento');
-                console.log( JSON.stringify(totals) );
+                //console.log('gettvalue descuento');
+                //console.log( JSON.stringify(totals) );
                 
                 var price = 0;
                 if (this.getDescuentoCuotaDisponible())
                 {
                     price = totals.getSegment('descuento').value;
                 }
+                //console.log("price price price",price);
                 return this.getFormattedPrice(price);
             },
             getDescuentoCuotaDisponible: function ()

@@ -118,6 +118,15 @@
                 </item>
             </argument>
         </paging>
+        <bookmark name="bookmarks">
+        <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="filter_planpago" xsi:type="array">
+                        <item name="namespace" xsi:type="string">filter_planpago</item>
+                    </item>
+                </item>
+            </argument>
+        </bookmark>
     </container>
     <!-- from here we'll add columns of grid list -->
     <columns name="plan_pago_grid_columns">
@@ -170,7 +179,7 @@
                     <item name="component" xsi:type="string">Magento_Ui/js/grid/columns/date</item>
                     <item name="dataType" xsi:type="string">date</item>
                     <item name="label" xsi:type="string" translate="true">Vigente desde</item>
-                    <item name="dateFormat" xsi:type="string" translate="true">MMM d, yyyy HH:mm:ss</item>                    
+                    <item name="dateFormat" xsi:type="string" translate="true">MMM d, yyyy HH:mm:ss</item>               
                 </item>
             </argument>
         </column>

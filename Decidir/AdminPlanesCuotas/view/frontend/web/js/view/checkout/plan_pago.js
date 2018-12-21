@@ -105,7 +105,8 @@ define(
                     {
                         var subtotal  = response.totals.subtotal;
                         var grandTotal = response.totals.grand_total;
-
+                        console.log("ppjssubtotal",subtotal);
+                        console.log("ppjsgrandTotal",grandTotal);
                         $('button.aplicar-plan').addClass('no-display-2');
                         $('.banco-seleccionado').removeClass('banco-seleccionado');
 
@@ -123,12 +124,13 @@ define(
                         });
 
                         var cuotas = plan.getCuotasDisponibles();
-
+                        var argumentsTotals;
                         if (typeof cuotas[planId] != "undefined")
                         {
                             $('#cuotas-disponibles').empty();
                             $('.cuotas-disponibles').removeClass('no-display-2');
-
+                            console.log("argumentsnt",arguments);
+                            argumentsTotals = arguments[0].totals;
                             $.each(cuotas[planId], function (index,val)
                             {
 
@@ -136,10 +138,18 @@ define(
                                 var descuentoHtml = '';
                                 var reintegroBox  = '';
                                 var interesHtml   = '';
-                                var totalCompra   = subtotal;
+                                var totalCompraDescuento = 0;
+                                var totalCompra = argumentsTotals.base_subtotal + argumentsTotals.shipping_amount + argumentsTotals.base_discount_amount;
+                                console.log("totalCompra:",totalCompra);
+                                if(val.descuento != 0){
+                                    totalCompraDescuento = totalCompra * (val.descuento/100);
+                                    totalCompra = totalCompra - totalCompraDescuento;
+                                } 
+                                var totalCompraConInteres = totalCompra * val.interes;
+                                console.log("totalCompra despues de interes:",totalCompra);
                                 var valorCuota;
                                 var importeTotalConDescuento;
-
+                                
                                 if(val.reintegro > 0)
                                 {
                                     reintegroBox = "<div class='reintegro-pop'>"+
@@ -181,7 +191,7 @@ define(
 
                                 }
                                 else
-                                    valorCuota = priceUtils.formatPrice((totalCompra/val.cuota), quote.getPriceFormat());
+                                    valorCuota = priceUtils.formatPrice((totalCompraConInteres/val.cuota), quote.getPriceFormat());
 
                                 if(val.interes == 0)
                                 {
@@ -196,8 +206,8 @@ define(
                                         totalCompra = importeTotalConDescuento;
                                     }
 
-                                    var valorConInteres = parseFloat(totalCompra * val.interes);
-                                    valorCuota = priceUtils.formatPrice((valorConInteres/val.cuota), quote.getPriceFormat());
+                                    //var valorConInteres = parseFloat(totalCompra * val.interes);
+                                    valorCuota = priceUtils.formatPrice((totalCompraConInteres/val.cuota), quote.getPriceFormat());
 
                                     if(val.cuota==1)
                                         interesHtml = val.cuota + ' cuota fija de '+'<strong>'+valorCuota+'</strong>';
@@ -211,7 +221,8 @@ define(
                                     "<input name='plan' value='"+val.cuota+"' type='radio'>"+
                                     "<div class='right-cuota'>"+
                                     "<span class='cuota'>"+interesHtml+"</span>"+
-                                    reintegroHtml+descuentoHtml+"<span class='reintegro descuento'>TEA: "+val.tea+" % - CFT: "+val.cft+" %</span></div>"+"</div>"+ reintegroBox;
+                                    reintegroHtml+descuentoHtml+"</div>"+"</div>"+ reintegroBox;
+                                    //reintegroHtml+descuentoHtml+"<span class='reintegro descuento'>TEA: "+val.tea+" % - CFT: "+val.cft+" %</span></div>"+"</div>"+ reintegroBox;
 
                                 $('#cuotas-disponibles').append(boxPlanCuota);
                             });

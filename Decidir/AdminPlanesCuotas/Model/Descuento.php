@@ -69,14 +69,17 @@ class Descuento implements DescuentoInterface
         $quote->getShippingAddress()->setCollectShippingRates(true);
         try
         {
-
+            
 			
             $detallesCuota = $this->_cuotaFactory->create()->getDetalles($planPagoId,$cuota);
 
             if(count($detallesCuota->getData()) && $detallesCuota->getDescuento() > 0)
             {
                 $descuentoFinal = 0;
+                \Magento\Framework\App\ObjectManager::getInstance()
+                 ->get(\Psr\Log\LoggerInterface::class)->debug("detallesCuota->getDescuento():".print_r($detallesCuota->getData(),true));
 
+                 $this->_checkoutSession->setAplicarDescuento(true);
                 /**
                  * Verifico si el gran total ya tiene aplicado un descuento por cuota anterior, y en caso de ser afirmativo
                  * lo elimino para que se pueda calcular nuevamente.
@@ -84,51 +87,56 @@ class Descuento implements DescuentoInterface
                 if($quote->getDescuentoCuota() > 0)
                 {
                     \Magento\Framework\App\ObjectManager::getInstance()
-                    ->get(\Psr\Log\LoggerInterface::class)->debug('Model/Descuento.php - Aplica descuento - Plan tiene descuento');  
+                    ->get(\Psr\Log\LoggerInterface::class)->debug('Model/Descuento.php - Aplica descuento - Plan tiene descuento:'.$quote->getDescuentoCuota());  
 
                     $quote->setSubtotal($quote->getSubtotal() + $quote->getDescuentoCuota());
                     $quote->setBaseSubtotal($quote->getBaseSubtotal() + $quote->getDescuentoCuota());
-                    $quote->setDescuentoCuota(0);
+                    $quote->setDescuentoCuota($quote->getDescuentoCuota());
                     $quote->setDescuentoCuotaDescripcion('');
                 }
 
-                if($detallesCuota->getTipoDescuento() == \Decidir\AdminPlanesCuotas\Model\Cuota::TIPO_DESCUENTO_PORCENTUAL
-                && $detallesCuota->getDescuento() < 100)
-                {
-                    $descuentoFinal = number_format((($detallesCuota->getDescuento() * $quote->getSubtotal())/100),2);
-                }
-                if($detallesCuota->getTipoDescuento() == \Decidir\AdminPlanesCuotas\Model\Cuota::TIPO_DESCUENTO_NOMINAL
-                    && $quote->getSubtotal() > $detallesCuota->getDescuento())
-                {
-                    $descuentoFinal = $detallesCuota->getDescuento();
-                }
-
-                /*
-                $quote->setGrandTotal(number_format($quote->getGrandTotal() - $descuentoFinal, 2, ".", ""));
-                $quote->setBaseGrandTotal(number_format($quote->getBaseGrandTotal() - $descuentoFinal, 2, ".", ""));
-                */
-                /*
-                $quote->setBaseSubtotal(number_format($quote->getBaseSubtotal() - $descuentoFinal, 2, ".", ""));
-                $quote->setSubtotal(number_format($quote->getSubtotal() - $descuentoFinal, 2, ".", ""));
-*/
-
                 $s = $detallesCuota->getCuota() == 1 ? '' : 's';
 
-                $this->_checkoutSession->setAplicarDescuento(true);
-                $quote->setDescuentoCuota($descuentoFinal);
+                \Magento\Framework\App\ObjectManager::getInstance()
+                ->get(\Psr\Log\LoggerInterface::class)->debug('vec_getTotals' );  
+
+                $tax_shipping = $quote->collectTotals()->getTotals()["shipping"]->getValue();
+                $subtotal = $quote->collectTotals()->getTotals()["subtotal"]->getValue();
+                $grandTotal = $subtotal;
+                $discountTotalCupon = 0;
+                foreach ($quote->getAllItems() as $item){
+                    $discountTotalCupon += $item->getDiscountAmount();
+                }
+                $totalCompra = $grandTotal + $tax_shipping - $discountTotalCupon;
+                $descuento = $detallesCuota->getData()["descuento"];
+                $quote->setDescuentoCuota(0);
+                if($descuento != 0){
+                    $compraDescuento = $totalCompra  * ($descuento/100);
+                    $this->_checkoutSession->setAplicarDescuento(true);
+                    
+                    $totalCompra  = $totalCompra  - $compraDescuento;
+                    
+
+                    $quote->setDescuentoCuota(round($compraDescuento,2));
+                } 
+
+                \Magento\Framework\App\ObjectManager::getInstance()
+            ->get(\Psr\Log\LoggerInterface::class)->debug(' Descuento.php quote->getDescuentoCuota(): '.$quote->getDescuentoCuota());  
 
                 $quote->setDescuentoCuotaDescripcion("Descuento por pago en {$detallesCuota->getCuota()} cuota$s con {$detallesCuota->getTarjetaNombre()} y {$detallesCuota->getBancoNombre()}");
             }
             else
             {
-
                 \Magento\Framework\App\ObjectManager::getInstance()
-                   ->get(\Psr\Log\LoggerInterface::class)->debug('Model/Descuento.php - Aplica descuento - Plan no tiene descuento');  
+                ->get(\Psr\Log\LoggerInterface::class)->debug("setDescuentoCuota 0");
+               
                 $quote->setDescuentoCuota(0);
                 $quote->setDescuentoCuotaDescripcion('');
             }
 
             $this->quoteRepository->save($quote->collectTotals());
+            \Magento\Framework\App\ObjectManager::getInstance()
+                ->get(\Psr\Log\LoggerInterface::class)->debug("final step"); 
 
         } catch (\Exception $e) {
             \Magento\Framework\App\ObjectManager::getInstance()
@@ -168,12 +176,13 @@ class Descuento implements DescuentoInterface
             if($quote->getDescuentoCuota() > 0)
             {
                 \Magento\Framework\App\ObjectManager::getInstance()
-                   ->get(\Psr\Log\LoggerInterface::class)->debug( 'RESET descuentoCuoeta ');  
+                   ->get(\Psr\Log\LoggerInterface::class)->debug( 'RESET descuentoCuota ');  
 
                 $quote->setSubtotal($quote->getSubtotal() + $quote->getDescuentoCuota());
                 $quote->setBaseSubtotal($quote->getBaseSubtotal() + $quote->getDescuentoCuota());
                 $quote->setDescuentoCuota(0);
                 $quote->setDescuentoCuotaDescripcion('');
+
             }
 
             $quote = $quote->collectTotals();

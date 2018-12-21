@@ -3,7 +3,8 @@
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
         <referenceBlock name="invoice_totals">
-            <block class="Decidir\AdminPlanesCuotas\Block\Sales\Totals" name="costo" as="costo"/>
+            <block class="Decidir\AdminPlanesCuotas\Block\Sales\Order\DescuentoCuota" name="descuento_cuota"/>
+            <block class="Decidir\AdminPlanesCuotas\Block\Sales\Order\Costo" name="costo"/>
         </referenceBlock>
     </body>
 </page>

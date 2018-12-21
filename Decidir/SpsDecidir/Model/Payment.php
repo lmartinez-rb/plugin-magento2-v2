@@ -11,7 +11,7 @@ use Decidir\AdminPlanesCuotas\Model\CuotaFactory;
 use Decidir\AdminPlanesCuotas\Model\PlanPagoFactory;
 use Magento\Payment\Helper\Data as PaymentHelper;
 use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
-
+use Magento\Sales\Model\Order;
 
 
 /**
@@ -121,6 +121,11 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
     protected   $_cuotaFactory;
 
     /**
+     * @var BancoFactory
+     */
+    protected   $_bancoFactory;
+
+    /**
      * @var PlanPagoFactory
      */
     protected   $_planPagoFactory;
@@ -131,7 +136,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
     protected $_paymentHelper;
 
     protected $_remote;
-
+    protected $scopeConfig;
     /**
      * Payment constructor.
      * @param \Magento\Framework\Model\Context $context
@@ -160,6 +165,8 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
      * @param \Magento\Framework\HTTP\PhpEnvironment\RemoteAddress $remote
      * @param array $data
      */
+
+    
     public function __construct(
         \Magento\Framework\Model\Context $context,
         \Magento\Framework\Registry $registry,
@@ -207,9 +214,8 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         $this->_moduleList             = $moduleList;
         $this->_paymentHelper = $paymentHelper;
         $this->_remote        = $remote;
-
-
-
+        
+        
         parent::__construct(
             $context,
             $registry,
@@ -222,6 +228,10 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
             $resourceCollection,
             $data
         );
+        $this->scopeConfig = $scopeConfig;
+       
+        
+
     }
 
     /**
@@ -236,6 +246,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
     {
         
         $order                  = $payment->getOrder();
+        
         $helper                 = $this->_spsHelper;
         $spsTransaccionesHelper = $this->_spsTransaccionesHelper;
         $customerSession        = $this->_customerSession;
@@ -299,7 +310,6 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
             $data = array(
                 "site_transaction_id" => $order->getIncrementId(),
                 "token" => $infoOperacionSps['tokenPago'],
-                //"customer" => array("id" => "$customerId", "email" => $customerSession->getCustomer()->getEmail()),
                 "payment_method_id" => (int)$infoOperacionSps['tarjeta_id'],
                 "amount" => number_format($amount, 2, ".", ""),
                 "bin" => $infoOperacionSps['bin'],
@@ -320,9 +330,9 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
                 );
             }
 
-            if(!empty($planPagoData[0]['merchant'])){
+            /*if(!empty($planPagoData[0]['merchant'])){
                 $data["site_id"]=$planPagoData[0]['merchant'];
-            }
+            }*/
 
 
         if($this->_scopeConfig->getValue('payment/decidir_spsdecidir/cybersource')==1){
@@ -499,24 +509,29 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
             \Magento\Framework\App\ObjectManager::getInstance()
             ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR - PAYMENT MODEL - Paga sin CS - Data a enviar: '. print_r($data, true) );               
 
-            try{         
+            try{
                 $respuesta = $ws->pagar($data);     
-
+                
                 \Magento\Framework\App\ObjectManager::getInstance()
                 ->get(\Psr\Log\LoggerInterface::class)->debug('respuesta pago Sin CS: '.print_r($respuesta, true) );                   
             }catch(\Exception $e){
-                    \Magento\Framework\App\ObjectManager::getInstance()
-                    ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR - PAYMENT MODEL - Error en Pago realizado sin Cybersource: '.print_r($e->getData(), true) );     
-
-                    return $this;
+                \Magento\Framework\App\ObjectManager::getInstance()
+                ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR - PAYMENT MODEL - Error en Pago realizado sin Cybersource');     
+                
+                $helper->cancelaOrden($order);
+                return $this;
             }
 
         }
 
-
-       /* \Magento\Framework\App\ObjectManager::getInstance()
-        ->get(\Psr\Log\LoggerInterface::class)->debug('decidir_id_transaccion: '.$respuesta->getId());
-        */
+        \Magento\Framework\App\ObjectManager::getInstance()
+        ->get(\Psr\Log\LoggerInterface::class)->debug( 'DEBUG INICIAL ANTES:::::: ');
+        $state = $helper->getConfig('payment/decidir_spsdecidir/estado/inicial');
+        
+        $order->setState($state, true);
+        $order->setStatus($state);
+        $order->addStatusToHistory($order->getStatus(), 'Order processed successfully with reference');
+        $order->save();
 
         $estado_transaccion = $respuesta->getStatus();
         $decidir_id_transaccion         = $respuesta->getId();
@@ -538,19 +553,20 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
                 $helper->log(print_r($infoOperacionSps,true),'info_operacion_sps_post_order.log');
             }*/
 
-
+            \Magento\Framework\App\ObjectManager::getInstance()
+            ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR2 - Tokenizacion habilitado:'. $this->_scopeConfig->getValue('payment/decidir_spsdecidir/tokenizacion') );  
             if(is_array($infoOperacionSps))
             {
                 $orderTransactionIdSps="";
 
                 if($estado_transaccion == $spsTransaccionesHelper::TRANSACCION_OK){
-
+                    
                     \Magento\Framework\App\ObjectManager::getInstance()
                         ->get(\Psr\Log\LoggerInterface::class)->debug( 'DECIDIR2 - MODEL PAYMENT - Pago aceptado' );                   
                     //$this->_messageManager->addSuccessMessage("error testing");
 
-                    //Si el usuario está registrado
-                    if(!empty($order->getCustomerId())){
+                    //Si el usuario está registrado y esta habilitado opcion de tokenizar
+                    if(!empty($order->getCustomerId())&&($this->_scopeConfig->getValue('payment/decidir_spsdecidir/tokenizacion')==1)){
                         \Magento\Framework\App\ObjectManager::getInstance()
                             ->get(\Psr\Log\LoggerInterface::class)->debug( ' if linea 540' );                   
 
@@ -567,7 +583,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
                         \Magento\Framework\App\ObjectManager::getInstance()
                             ->get(\Psr\Log\LoggerInterface::class)->debug( 'Antes de guardarToken ' );                   
 
-
+                            
                         $helper->guardarToken( $respuestaGetToken->getTokens(), $respuesta );
 
                         \Magento\Framework\App\ObjectManager::getInstance()
@@ -576,14 +592,45 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
 
                     }
 
-
+                    
                     $orderTransactionIdSps =  $decidir_id_transaccion;
                     $infoOperacionSps['detalles_pago']=$infoOperacionSps['detalles_pago'];
-
+                    
                     $payment->setTransactionId($orderTransactionIdSps);
                     $payment->setAdditionalInformation('detalles_pago',$infoOperacionSps['detalles_pago']);
+                    $payment->setAdditionalInformation('bin',$infoOperacionSps['bin']);
+                    $payment->setAdditionalInformation('cuota',$infoOperacionSps['cuota']);
+                    $payment->setAdditionalInformation('card',$infoOperacionSps['holderName']);
+                    $payment->setAdditionalInformation('card_id',$infoOperacionSps['tarjeta_id']);
+                    $payment->setAdditionalInformation('interes',$cuotaData[0]['interes']);
+                    $payment->setAdditionalInformation('last_digits',$infoOperacionSps['lastDigits']);
+                    $payment->setAdditionalInformation('expiration_month',$infoOperacionSps['expirationMonth']);
+                    $payment->setAdditionalInformation('expiration_year',$infoOperacionSps['expirationYear']);
+                    if( !empty($planPagoData[0]['nombre']) ){
+                        $payment->setAdditionalInformation('payment_plan',$planPagoData[0]['nombre']);
+                        $payment->setAdditionalInformation('payment_plan_id',$planPagoData[0]['plan_pago_id']);
+                        \Magento\Framework\App\ObjectManager::getInstance()
+                        ->get(\Psr\Log\LoggerInterface::class)->debug( 'Inovoice-planPagoData : ' . print_r($planPagoData, true) );
+                        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
 
-                    $status = $this->_scopeConfig->getValue('payment/decidir_spsdecidir/order_status');
+                            $collectionBanco = $objectManager->get('Decidir\AdminPlanesCuotas\Model\Banco')
+                            ->getCollection()
+                            ->addFieldToFilter('banco_id',['eq'=>$planPagoData[0]['banco_id']]);
+                            $dataBanco = $collectionBanco->getData();
+
+                            $payment->setAdditionalInformation('bank',$dataBanco[0]['nombre']);
+                            $payment->setAdditionalInformation('bank_id',$dataBanco[0]['banco_id']);
+                            \Magento\Framework\App\ObjectManager::getInstance()
+                            ->get(\Psr\Log\LoggerInterface::class)->debug( 'dataBanco : ' . print_r($dataBanco, true) );
+                    }
+                    $payment->setAdditionalInformation('status',$infoOperacionSps['estado_transaccion']);
+                    
+                    $state = $helper->getConfig('payment/decidir_spsdecidir/estado/aprobado');
+
+                    $order->setState($state, true);
+                    $order->setStatus($state);
+                    $order->addStatusToHistory($order->getStatus(), 'Order aprobado');
+                    $order->save();
 
                     $transaction = $this->transactionBuilder
                         ->setPayment($payment)
@@ -608,15 +655,63 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
                         ->get(\Psr\Log\LoggerInterface::class)->debug( 'Inovoice-amount : ' . $amount );
 
 
-
-
-
-
                     $infoOperacionSps['transaccion_mensaje']=$mensajeEstado;
                     $helper->setInfoTransaccionSPS($infoOperacionSps);
 
                     //$this->_messageManager->addSuccessMessage($mensajeEstado);
+                    /*
+                    \Magento\Framework\App\ObjectManager::getInstance()
+                        ->get(\Psr\Log\LoggerInterface::class)->debug( ' getSubtotal : ' . $order->getSubtotal()
+                        ." getBaseSubtotal: ".$order->getBaseSubtotal()
+                        ." getGrandTotal: ".$order->getGrandTotal()
+                        ." getBaseGrandTotal: ".$order->getBaseGrandTotal()
+                     );
+
+                    $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+                    $quoteFactory = $objectManager->create('\Magento\Quote\Model\QuoteFactory');
+                    $quote = $quoteFactory->create()->load($order->getQuoteId());
+
+                    $order->setBaseGrandTotal(10);
+                    $order->setGrandTotal(10);
+                    \Magento\Framework\App\ObjectManager::getInstance()
+                        ->get(\Psr\Log\LoggerInterface::class)->debug( ' quote getSubtotal : ' . $quote->getSubtotal()
+                        ." quote getBaseSubtotal: ".$quote->getBaseSubtotal()
+                        ." quote getGrandTotal: ".$quote->getGrandTotal()
+                        ." quote getBaseGrandTotal: ".$quote->getBaseGrandTotal()
+                        ." getQuoteId: ".$order->getQuoteId()
+                     );
+                     /*
+                        $total->setTotalAmount('subtotal', 999);
+                        $total->setBaseTotalAmount('subtotal', 999);
+
+                        \Magento\Framework\App\ObjectManager::getInstance()
+                        ->get(\Psr\Log\LoggerInterface::class)->debug("TOTAL getTotalAmount: " . $total->getTotalAmount() );
+                        \Magento\Framework\App\ObjectManager::getInstance()
+                        ->get(\Psr\Log\LoggerInterface::class)->debug("TOTAL getBaseTotalAmount: " . $total->getBaseTotalAmount() );
+                    
+                    $order->setSubtotal($quote->getBaseGrandTotal()+5)
+                            ->setBaseSubtotal($quote->getBaseGrandTotal()+5)
+                            ->setGrandTotal($quote->getBaseGrandTotal()+5)
+                            ->setBaseGrandTotal($quote->getBaseGrandTotal()+5);
+                    $quote->setSubtotal($quote->getSubTotal()+5)
+                            ->setBaseSubtotal($quote->getBaseGrandTotal()+5)
+                            ->setGrandTotal($quote->getBaseGrandTotal()+5)
+                            ->setBaseGrandTotal($quote->getBaseGrandTotal()+5);
+                    
+                    $this->_checkoutSession->getQuote()->setSubtotal(333);
+                    $this->_checkoutSession->getQuote()->setBaseSubtotal(333);
+                    $this->_checkoutSession->getQuote()->setGrandTotal(333);
+                    $this->_checkoutSession->getQuote()->setBaseGrandTotal(333);
+                    $quote->save($quote->collectTotals());
+                    $this->_checkoutSession->getQuote()->collectTotals()->save();
+                    $quote->save();
+                    $quote->collectTotals()->save(); 
+                    // $order->setBaseGrandTotal(10);
+                    //$this->_messageManager->addSuccessMessage($mensajeEstado);
+                    //aqui ya guarda el amount_paid
+                    */
                     $order->save();
+
 
                     \Magento\Framework\App\ObjectManager::getInstance()
                         ->get(\Psr\Log\LoggerInterface::class)->debug("Debug: " . '$payment->getTransactionId() = ' . $payment->getTransactionId() );
@@ -649,8 +744,13 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
                             $helper->log($infoPagoRechazado, 'pagos_rechazados_sps_' . date('Y_m_d') . '.log');
                         }
 
-                        $status = \Magento\Sales\Model\Order::STATE_CANCELED;
-
+                        $state = $helper->getConfig('payment/decidir_spsdecidir/estado/rechazado');
+                        //$state = \Magento\Sales\Model\Order::STATE_CANCELED;
+                        $order->setState($state, true);
+                        $order->setStatus($state);
+                        $order->addStatusToHistory($order->getStatus(), 'Orden rechazada');
+                        $order->save();
+                        
                         $mensajeEstado = 'Su pago ID '. $orderTransactionIdSps .', de la orden '. $order->getIncrementId() .', con tarjeta de crédito fue rechazado. Mensaje devuelto por DECIDIR: '. $errorMsg->error['reason']['description'];
                         //$this->_messageManager->addErrorMessage($mensajeEstado);
 
@@ -666,7 +766,36 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
                             $methodInstance = $this->_paymentHelper->getMethodInstance($method);
 
                             $payment->setTransactionId($orderTransactionIdSps);
-                            $payment->setAdditionalInformation('detalles_pago',$infoOperacionSps['detalles_pago']);
+                            
+                            if(isset($infoOperacionSps['detalles_pago'])) $payment->setAdditionalInformation('detalles_pago',$infoOperacionSps['detalles_pago']);
+                            if(isset($infoOperacionSps['bin'])) $payment->setAdditionalInformation('bin',$infoOperacionSps['bin']);
+                            if(isset($infoOperacionSps['cuota'])) $payment->setAdditionalInformation('cuota',$infoOperacionSps['cuota']);
+                            if(isset($infoOperacionSps['card'])) $payment->setAdditionalInformation('card',$infoOperacionSps['holderName']);
+                            if(isset($infoOperacionSps['tarjeta_id'])) $payment->setAdditionalInformation('card_id',$infoOperacionSps['tarjeta_id']);
+                            if(isset($cuotaData[0]['interes'])) $payment->setAdditionalInformation('interes',$cuotaData[0]['interes']);
+                            if(isset($infoOperacionSps['last_digits'])) $payment->setAdditionalInformation('last_digits',$infoOperacionSps['lastDigits']);
+                            if(isset($infoOperacionSps['expiration_month'])) $payment->setAdditionalInformation('expiration_month',$infoOperacionSps['expirationMonth']);
+                            if(isset($infoOperacionSps['expiration_year'])) $payment->setAdditionalInformation('expiration_year',$infoOperacionSps['expirationYear']);
+                            if( !empty($planPagoData[0]['nombre']) ){
+                                $payment->setAdditionalInformation('payment_plan',$planPagoData[0]['nombre']);
+                                $payment->setAdditionalInformation('payment_plan_id',$planPagoData[0]['plan_pago_id']);
+                                $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+                                    if(isset($planPagoData[0]['banco_id'])){
+                                        $collectionBanco = $objectManager->get('Decidir\AdminPlanesCuotas\Model\Banco')
+                                        ->getCollection()
+                                        ->addFieldToFilter('banco_id',['eq'=>$planPagoData[0]['banco_id']]);
+                                        $dataBanco = $collectionBanco->getData();
+
+                                        $payment->setAdditionalInformation('bank',$dataBanco[0]['nombre']);
+                                        $payment->setAdditionalInformation('bank_id',$dataBanco[0]['banco_id']);
+
+                                        \Magento\Framework\App\ObjectManager::getInstance()
+                                        ->get(\Psr\Log\LoggerInterface::class)->debug( 'dataBanco : ' . print_r($dataBanco, true) );
+                                    }
+                                    
+                            }
+                            if(isset($infoOperacionSps['estado_transaccion'])) $payment->setAdditionalInformation('status',$infoOperacionSps['estado_transaccion']);
+                            
                             $payment->setIsTransactionClosed(1);
  
 
@@ -687,7 +816,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
                             }
                             $payment->addTransactionCommentsToOrder($transaction, $mensajeEstado); 
 
-                            $order->setState($status)->setStatus($status);
+                            $order->setState($state)->setStatus($state);
 
                             $payment->setSkipOrderProcessing(true);
                             $payment->setIsTransactionDenied(true);
@@ -708,12 +837,12 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
                 }
 
                 \Magento\Framework\App\ObjectManager::getInstance()
-                ->get(\Psr\Log\LoggerInterface::class)->debug('model - payment - cambio de estado. ESTADO: '.$status);                   
+                ->get(\Psr\Log\LoggerInterface::class)->debug('model - payment - cambio de estado. ESTADO: '.$state);                   
                 
                 
                 //$this->_checkoutSession->restoreQuote();
 
-                $history = $order->addStatusHistoryComment($mensajeEstado, $status);
+                $history = $order->addStatusHistoryComment($mensajeEstado, $state);
                 $history->setIsVisibleOnFront(true);
                 $history->setIsCustomerNotified(true);
                 $history->save();

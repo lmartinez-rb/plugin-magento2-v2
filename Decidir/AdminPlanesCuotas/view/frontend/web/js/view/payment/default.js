@@ -310,6 +310,39 @@ define(
             }),
 
             isRadioButtonVisible: ko.computed(function () {
+                
+                ////console.log("anda:"+ this.isChecked());    
+                
+                if (typeof(document.getElementById("decidir_spsdecidir")) != 'undefined' && document.getElementById("decidir_spsdecidir") != null)
+                {
+                    ////console.log("---decidir_spsdecidir esta definido");
+                    ////console.log("---checked:",document.getElementById("decidir_spsdecidir").checked);
+                    if(document.getElementById("decidir_spsdecidir").checked){
+                        if(!($('.checkout-shipping-method:visible').length == 0))
+                        {
+                            var deferred = $.Deferred();
+                            quote.setPaymentMethod(null);
+                            getPaymentInformationAction(deferred);
+                            jQuery.when(deferred).done(function () {
+                                totals.isLoading(false);
+                                fullScreenLoader.stopLoader();
+                                $('tr.leyenda-reintegro').remove();
+                                $('.leyenda-reintegro').remove();
+                                $('.tarjeta-almacenada').hide();
+                                $('#selector-planes').show();
+                                $('.tarjetas-disponibles').show();
+                                $('.cuotas-disponibles').addClass('no-display-2');
+                                $('#decidir_spsdecidir').click();
+                                $('.bancos-disponibles').addClass('no-display-2');
+                            });
+                        }
+                    }
+                    //document.getElementById("decidir_spsdecidir").checked=false;
+                    //$(".payment-method-content").hide();
+                    //////console.log("termina if");
+                }
+                ////console.log("isRadioButtonVisible",paymentService.getAvailablePaymentMethods());
+                
                 return paymentService.getAvailablePaymentMethods().length !== 1;
             }),
 

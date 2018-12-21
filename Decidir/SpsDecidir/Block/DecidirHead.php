@@ -124,6 +124,11 @@ class DecidirHead extends Template
     }
 
 
+    public function getCSConfig()
+    {
+        return $this->_scopeConfig->getValue('payment/decidir_spsdecidir/cybersource');
+    }
+
 
     /**
      * @return array
@@ -167,6 +172,10 @@ class DecidirHead extends Template
 
         return $this->_token;
 
+    }
+
+    public function getEnabledTokenizedCard(){ 
+        return (string)$this->_scopeConfig->getValue('payment/decidir_spsdecidir/tokenizacion');
     }
 
 }

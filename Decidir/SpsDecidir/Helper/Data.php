@@ -158,7 +158,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             }
             else
             {
-                $orderStatus = $this->_scopeConfig->getValue('payment/decidir_spsdecidir/order_status');
+                $orderStatus = $this->_scopeConfig->getValue('payment/decidir_spsdecidir/estado/aprobado');
 
                 \Magento\Framework\App\ObjectManager::getInstance()
                 ->get(\Psr\Log\LoggerInterface::class)->debug('helper - data - actualizarOrden: TRANSACCIÓN OK ' . $orderStatus );                   
@@ -171,6 +171,13 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         return true;
     }
 
+    public function getConfig($config_path)
+    {
+        return $this->scopeConfig->getValue(
+                $config_path,
+                \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+                );
+    }
 
     public function guardarToken($respuestaGetToken, $respuesta){
         $decidirTokenTarjeta=0;
@@ -436,7 +443,27 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         return $payDataOperacion;
     }
 
+    public function cancelaOrden($order){
+        $payment = $order->getPayment();
+        \Magento\Framework\App\ObjectManager::getInstance()
+                ->get(\Psr\Log\LoggerInterface::class)->debug('helper - cancelando orden ' . \Magento\Sales\Model\Order::STATE_CANCELED );                   
 
+        $order->registerCancellation('Error en transaccion');
+        $order->cancel();
+        $payment->setState(\Magento\Sales\Model\Order::STATE_CANCELED);
+        $order->setState(\Magento\Sales\Model\Order::STATE_CANCELED)
+            ->setStatus($order->getConfig()->getStateDefaultStatus(\Magento\Sales\Model\Order::STATE_CANCELED));
+        
+        $order->save();
+        
+        $payment->setIsTransactionClosed(1);
+        $payment->setSkipOrderProcessing(true);
+        $payment->setIsTransactionDenied(true);
+        $order->cancel()->save();
+
+        \Magento\Framework\App\ObjectManager::getInstance()
+                ->get(\Psr\Log\LoggerInterface::class)->debug('helper - ORDEN CANCELADA ');                   
+    }
 
     public function getDataControlFraudeRetail($order, $arrCommon){
         $shippingAdress = $order->getShippingAddress();

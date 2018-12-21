@@ -11,7 +11,7 @@
     <head>
         <css src="Decidir_SpsDecidir::css/sps_decidir.css"/>
 
-        <script src="https://live.decidir.com/static/v2.2.2/decidir.js" src_type="url" />
+        <script src="https://live.decidir.com/static/v2.5/decidir.js" src_type="url" />
 
     </head>
     <body>

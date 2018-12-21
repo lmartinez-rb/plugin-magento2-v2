@@ -32,7 +32,7 @@ define(
             initialize: function ()
             {
                 this._super();
-
+                this.enabledToken = window.checkoutConfig.payment.enabledToken;
                 this.meses = ['01','02','03','04','05','06','07','08','09','10','11','12'];
                 this.tarjetasTokenizadas = window.checkoutConfig.payment.decidirToken;
                 this.tarjeta_tokenizada = ko.observable('');
@@ -105,7 +105,7 @@ define(
              */
             getAuthorizeRequest: function()
             {
-                console.log('getAuthorizeRequest');
+                //console.log('getAuthorizeRequest');
                 $('#sps-pagar-btn').prop('disabled', true);
                 $( "input[name='payment[method]']" ).prop('disabled', true); //Radiobox de cada medio de pago
 
@@ -142,7 +142,7 @@ define(
                         var detalleCuotasHtml   = $("[name='plan']:checked").parent().children('.right-cuota').children('span.cuota').html();
 
                         detallesPlan =
-                            "<li>Tarjeta: <span class='detalle-plan'>"+val.tarjeta_nombre+"</span></li>"+
+                            "<li>AATarjeta: <span class='detalle-plan'>"+val.tarjeta_nombre+"</span></li>"+
                             "<li>Entidad financiera: <span class='detalle-plan'>"+val.banco_nombre+"</span></li>"+
                             "<li>Cuotas: <span class='detalle-plan'>"+detalleCuotasHtml+"</span></li>";
                         return true;
@@ -161,45 +161,12 @@ define(
                 planSeleccionado.detalleReintegro = this.getDetalleReintegro(planSeleccionado.cuota.reintegro,planSeleccionado.cuota.tipo_reintegro);
 
                 $('.detalles-plan-seleccionado').html(detallesPlan);                            
-                            console.log('planSeleccionado.cuota.descuento = '+planSeleccionado.cuota.descuento);
+                            //console.log('planSeleccionado.cuota.descuento = '+planSeleccionado.cuota.descuento);
 
-                            if(planSeleccionado.cuota.descuento !=0)
-                            {
-                                $.ajax('/rest/V1/descuento/plan_pago/'+planSeleccionado.cuota.plan_pago_id+'/cuota/'+planSeleccionado.cuota.cuota,
-                                {
-                                    method  : 'PUT',
-                                    context : this,
-                                    success : function (response)
-                                    {
-                                        console.log('Descuento API');
-                                        $('#sps-pagar-btn').prop('disabled', true);
-                                        
-                                        var deferred = $.Deferred();
-                                        totals.isLoading(true);
-
-
-                                        getPaymentInformationAction(deferred);
-                                        $.when(deferred).done(function () {
-                                            totals.isLoading(false); 
-                                            $('#sps-pagar-btn').prop('disabled', false);  //Botón palce order
-                                            $( "input[name='payment[method]']" ).prop('disabled', false); //Radiobox de cada medio de pago                                  
-                                        });
-
-                                        
-                                        $('tr.descuento_cuota th').text(response);
-                                        $('tr.descuento_cuota').show();
-                                    },
-                                    error   : function (e, status)
-                                    {
-                                        alert("Se produjo un error, por favor intentelo nuevamente");
-                                        $('.adminplanes-loader').addClass('no-display-2');
-                                        $('tr.descuento_cuota').hide();
-                                    }
-                                });
-                            }
-
+                          
                             if(planSeleccionado.cuota.interes  > 1)
-                            {
+                            {   
+                                 //console.log("call ajax");
                                  $.ajax('/rest/V1/costo/plan_pago/'+planSeleccionado.cuota.plan_pago_id+'/cuota/'+planSeleccionado.cuota.cuota,
                                  {
                                         method  : 'PUT',
@@ -209,24 +176,56 @@ define(
                                             $('#sps-pagar-btn').prop('disabled', true); //Botón palce order
                                             $( "input[name='payment[method]']" ).prop('disabled', true); //Radiobox de cada medio de pago
 
-                                            console.log('costo API');                           
+                                                                      
                                             var deferred = $.Deferred();
                                             totals.isLoading(true);
                                             getPaymentInformationAction(deferred);  
                                             $.when(deferred).done(function () {
                                                 totals.isLoading(false);
 
-                                                console.log('BUCLE');
+                                                
                                                 $('#sps-pagar-btn').prop('disabled', false); //Botón palce order
                                                 $( "input[name='payment[method]']" ).prop('disabled', false); //Radiobox de cada medio de pago
                                             });                     
 
-                                            console.log('sale de bucle');
-
-
-                                            console.log('response='+response);
+                                            
                                             $('tr.decidir_costo th').text(response);
                                             $('tr.decidir_costo').show();  
+                                            if(planSeleccionado.cuota.descuento !=0)
+                                            {
+                                                //console.log("call ajax");
+                                                $.ajax('/rest/V1/descuento/plan_pago/'+planSeleccionado.cuota.plan_pago_id+'/cuota/'+planSeleccionado.cuota.cuota,
+                                                {
+                                                    method  : 'PUT',
+                                                    context : this,
+                                                    success : function (response)
+                                                    {
+                                                        //console.log('Descuento API',response);
+                                                        $('#sps-pagar-btn').prop('disabled', true);
+                                                        
+                                                        var deferred = $.Deferred();
+                                                        totals.isLoading(true);
+
+
+                                                        getPaymentInformationAction(deferred);
+                                                        $.when(deferred).done(function () {
+                                                            totals.isLoading(false); 
+                                                            $('#sps-pagar-btn').prop('disabled', false);  //Botón palce order
+                                                            $( "input[name='payment[method]']" ).prop('disabled', false); //Radiobox de cada medio de pago                                  
+                                                        });
+
+                                                        
+                                                        $('tr.descuento_cuota th').text(response);
+                                                        $('tr.descuento_cuota').show();
+                                                    },
+                                                    error   : function (e, status)
+                                                    {
+                                                        alert("Se produjo un error, por favor intentelo nuevamente");
+                                                        $('.adminplanes-loader').addClass('no-display-2');
+                                                        $('tr.descuento_cuota').hide();
+                                                    }
+                                                });
+                                            }
                                         },
                                         error   : function (e, status)
                                         {
@@ -235,6 +234,9 @@ define(
                                             $('tr.costo').hide();
                                         }
                                 }); 
+                            }else{
+                                //vuelvo habilitar boton placeholder
+                                $('#sps-pagar-btn').prop('disabled', false);
                             }
 
                             trCftHtml += "<tr class='leyenda-cft'>" +
@@ -295,12 +297,12 @@ define(
                 var banco_id     = $("#decidir-token-banco").val();
                 var cuotas       = $("[name='plan']:checked").val();
                 var plan_pago_id = $('.box-plan-cuota.cuota-seleccionada').attr('id').split('_')[1];
-                console.log('cuotas = ' + cuotas);
+                //console.log('cuotas = ' + cuotas);
 
-                console.log('tarjeta_id='+tarjeta_id);
-                console.log('sps_id='+sps_id);
+                //console.log('tarjeta_id='+tarjeta_id);
+                //console.log('sps_id='+sps_id);
                 decidir_cuota=cuotas;
-                console.log('decidir_cuota = '+decidir_cuota);
+                //console.log('decidir_cuota = '+decidir_cuota);
 
 
 
@@ -323,13 +325,15 @@ define(
                     {
                         planSeleccionado.id     = val.plan_pago_id;
                         var detalleCuotasHtml   = $("[name='plan']:checked").parent().children('.right-cuota').children('span.cuota').html();
-
+                        //console.log("arguments",arguments[0].totals);
+                        //console.log("cuotas",cuotas);
                         detallesPlan =
                             "<li>Tarjeta: <span class='detalle-plan'>"+val.tarjeta_nombre+"</span></li>"+
                             "<li>Entidad financiera: <span class='detalle-plan'>"+val.banco_nombre+"</span></li>"+
                             "<li>Cuotas: <span class='detalle-plan'>"+detalleCuotasHtml+"</span></li>";  
 
-                        console.log(detallesPlan);                      
+                        //console.log(detallesPlan);  
+                        //console.log("detalleCuotasHtml:",detalleCuotasHtml);                    
                         return true;
                     }
                 });
@@ -351,16 +355,48 @@ define(
                 $('.tarjetas-tokenizadas').show();
                 $('.sps-datos-tarjeta-tokenizada').show();
 
-                console.log('planSeleccionado.cuota.descuento ' + planSeleccionado.cuota.descuento);
+                //console.log('planSeleccionado.cuota.descuento ' + planSeleccionado.cuota.descuento);
+
+                if(planSeleccionado.cuota.costo !=0)
+                {
+                    //console.log('ini planSeleccionado.cuota.costo');
+                    //console.log("call ajax",planSeleccionado);
+                    $.ajax('/rest/V1/costo/plan_pago/'+planSeleccionado.cuota.plan_pago_id+'/cuota/'+planSeleccionado.cuota.cuota,
+                    {
+                        method  : 'PUT',
+                        context : this,
+                        success : function (response)
+                        {
+                            $('#sps-pagar-btn-token').prop('disabled', true); //Botón place order
+                            $( "input[name='payment[method]']" ).prop('disabled', true); //Radiobox de cada medio de pago
+                            //console.log("response",response);
+                            var deferred = $.Deferred();
+                            totals.isLoading(true);
+
+                            getPaymentInformationAction(deferred);
+                            $.when(deferred).done(function () {
+                                totals.isLoading(false);
+                                $('#sps-pagar-btn-token').prop('disabled', false); //Botón place order
+                                $( "input[name='payment[method]']" ).prop('disabled', false); //Radiobox de cada medio de pago
+                            });
+
+                            $('tr.decidir_costo th').text(response+" ---");
+                            $('tr.decidir_costo').show();
+
+
+
+
+
                             if(planSeleccionado.cuota.descuento !=0)
                             {
+                                //console.log("call ajax");
                                 $.ajax('/rest/V1/descuento/plan_pago/'+planSeleccionado.cuota.plan_pago_id+'/cuota/'+planSeleccionado.cuota.cuota,
                                 {
                                     method  : 'PUT',
                                     context : this,
                                     success : function (response)
                                     {
-                                        console.log('Descuento API');
+                                        //console.log('Descuento API:',response);
                                         $('#sps-pagar-btn').prop('disabled', true);
                                         
                                         var deferred = $.Deferred();
@@ -377,6 +413,8 @@ define(
                                         
                                         $('tr.descuento_cuota th').text(response);
                                         $('tr.descuento_cuota').show();
+
+
                                     },
                                     error   : function (e, status)
                                     {
@@ -388,30 +426,11 @@ define(
                             }
 
 
-                if(planSeleccionado.cuota.costo !=0)
-                {
-                    console.log('ini planSeleccionado.cuota.costo');
-                    $.ajax('/rest/V1/costo/plan_pago/'+planSeleccionado.cuota.plan_pago_id+'/cuota/'+planSeleccionado.cuota.cuota,
-                    {
-                        method  : 'PUT',
-                        context : this,
-                        success : function (response)
-                        {
-                            $('#sps-pagar-btn-token').prop('disabled', true); //Botón place order
-                            $( "input[name='payment[method]']" ).prop('disabled', true); //Radiobox de cada medio de pago
 
-                            var deferred = $.Deferred();
-                            totals.isLoading(true);
 
-                            getPaymentInformationAction(deferred);
-                            $.when(deferred).done(function () {
-                                totals.isLoading(false);
-                                $('#sps-pagar-btn-token').prop('disabled', false); //Botón place order
-                                $( "input[name='payment[method]']" ).prop('disabled', false); //Radiobox de cada medio de pago
-                            });
 
-                            $('tr.decidir_costo th').text(response);
-                            $('tr.decidir_costo').show();
+
+
                         },
                         error   : function (e, status)
                         {
@@ -420,8 +439,10 @@ define(
                             $('tr.decidir_costo').hide();
                         }
                     });
+                }else{
+                    //vuelvo habilitar boton place holder
+                    $('#sps-pagar-btn').prop('disabled', false);
                 }
-
 
 
                 if(planSeleccionado.detalleReintegro)
@@ -433,7 +454,7 @@ define(
                 $('.sps-codigo-seguridad-token').removeClass('no-display-2');
                 $('button.aplicar-cuotas-token').hide();
                 $('#sps-pagar-btn-token').show();
-                console.log('Muestra botones de pagar con token');
+                //console.log('Muestra botones de pagar con token');
 
 
             },
@@ -457,7 +478,8 @@ define(
 
                 $('.adminplanes-loader').removeClass('no-display-2');
 
-                console.log('1 RESET CAMBIAR PLAN en decidir-method.js');
+                //console.log('1 RESET CAMBIAR PLAN en decidir-method.js');
+                //console.log("call ajax");
                 $.ajax('/rest/V1/descuento/reset',
                 {
                     method  : 'GET',
@@ -485,7 +507,8 @@ define(
                 });
                 
 
-        console.log('Costo decidir-method RESET 1');
+                //console.log('Costo decidir-method RESET 1');
+                //console.log("call ajax");
                 $.ajax('/rest/V1/costo/reset',
                 {
                     method  : 'GET',
@@ -515,7 +538,7 @@ define(
             },
             getDetalleReintegro: function (reintegro,tipo)
             {
-                console.log('Método detallereintegro ejecutándose');
+                //console.log('Método detallereintegro ejecutándose');
                 var trHtml = '';
                 $('.leyenda-reintegro').remove();
 
@@ -548,7 +571,7 @@ define(
                         "</tr>";
 
 
-                    console.log('Texto añadido HTML: ' + trHtml);   
+                    //console.log('Texto añadido HTML: ' , trHtml);   
                 }
 
                 return trHtml;
@@ -562,15 +585,15 @@ define(
                 var tokenId = $('[name="tarjeta-token"]').val();
                 var token   = this.getToken(tokenId);
 
-                console.log('tokenId = ' + tokenId);
-                console.log('token = ' + token);
-                console.log(token);
+                //console.log('tokenId = ' + tokenId);
+                //console.log('token = ' + token);
+                //console.log(token);
 
                 if(!jQuery.isEmptyObject(token))
                 {
                     $('.adminplanes-loader').removeClass('no-display-2');
                     $('#decidir-token').val(token.token);
-                    console.log('token.token = ' + token.token);
+                    //console.log('token.token = ' + token.token);
 
                     $('.cuotas-disponibles').removeClass('no-display-2');
 
@@ -590,8 +613,8 @@ define(
                     var banco_id    = token.banco_id;
                     var tarjeta_id  = token.tarjeta_id; /**jQuery('[name="tarjeta"]:checked').val();*/
 
-                    console.log('banco_id = ' + banco_id);
-                    console.log('tarjeta_id = ' + tarjeta_id);
+                    //console.log('banco_id = ' + banco_id);
+                    //console.log('tarjeta_id = ' + tarjeta_id);
 
 
                     $('#decidir-token-tarjeta').val(token.tarjeta_id);
@@ -603,21 +626,21 @@ define(
 
                     var planesDisponibles = plan.getPlanesDisponibles();
                     var planId = null;
-                    console.log('planesDisponibles');
-                    console.log(planesDisponibles);
-
+                    //console.log('planesDisponibles');
+                    //console.log(planesDisponibles);
+                    //console.log("arguments",arguments[0].totals);
                     $.each(planesDisponibles,function(index, val)
                     {
-                        console.log('val.tarjeta_id ' + ' - ' + val.tarjeta_id + ' - ' + tarjeta_id);
-                        console.log('val.banco_id ' + ' - ' + val.banco_id + ' - ' + banco_id);
+                        //console.log('val.tarjeta_id ' + ' - ' + val.tarjeta_id + ' - ' + tarjeta_id);
+                        //console.log('val.banco_id ' + ' - ' + val.banco_id + ' - ' + banco_id);
                         if(val.tarjeta_id == tarjeta_id && val.banco_id == banco_id)
                         {
                             planId = val.plan_pago_id;
 
-                            console.log('planId = ' + planId);
+                            //console.log('planId = ' + planId);
                         }
                     });
-
+                    //console.log("call ajax");
                     $.ajax(
                     {
                         url     : '/rest/default/V1/carts/mine/payment-information',
@@ -627,29 +650,44 @@ define(
                         {
                             var subtotal  = response.totals.subtotal;
 
+                            var valorCFT = response.totals.total_segments.find(findcft => findcft.code === 'decidir_costofinanciero');
+                            
                             var cuotas = plan.getCuotasDisponibles();
-                            console.log('cuotas');
-                            console.log(cuotas);
-
+                            //console.log('cuotas');
+                            //console.log(cuotas);
+                            var argumentsTotals;
                             if (typeof cuotas[planId] != "undefined")
                             {
-                                console.log('planId');
-                                console.log(cuotas[planId]);
-
+                                //console.log('planId');
+                                //console.log(cuotas[planId]);
+                                //console.log("argumentsnt",arguments);
+                                //console.log("arguments",arguments[0].totals);
+                                argumentsTotals = arguments[0].totals;
                                 $('#cuotas-disponibles').empty();
                                 $('.cuotas-disponibles').removeClass('no-display-2');
 
                                 $.each(cuotas[planId], function (index,val)
                                 {
-                                    console.log(val);
+                                    //console.log(val);
 
                                     var reintegroHtml = '';
                                     var descuentoHtml = '';
                                     var reintegroBox  = '';
                                     var interesHtml   = '';
-                                    var totalCompra   = subtotal;
+                                    var totalCompraDescuento = 0;
+                                    //var totalCompra   = subtotal;
+                                    var totalCompra = argumentsTotals.base_subtotal + argumentsTotals.shipping_amount;
+                                    //console.log("totalCompra:",totalCompra);
+                                    if(val.descuento != 0){
+                                        totalCompraDescuento = totalCompra * (val.descuento/100);
+                                        totalCompra = totalCompra - totalCompraDescuento;
+                                    } 
+                                    totalCompra = totalCompra * val.interes;
+                                    //console.log("totalCompra despues de interes:",totalCompra);
                                     var valorCuota;
-
+                                    //console.log("arguments",argumentsTotals);
+                                    //console.log("argumentsnt2",arguments);
+                                    //console.log("totalCompra",totalCompra);
                                     if(val.reintegro > 0)
                                     {
                                         reintegroBox = "<div class='reintegro-pop'>"+
@@ -665,7 +703,7 @@ define(
                                             " onclick='jQuery(this).parent().parent().parent().children(\".reintegro-pop\").toggle()' >" +
                                             "</i></span>";
                                     }
-
+                                    //console.log("ESTO ES VAL:",val);
                                     if(val.descuento > 0)
                                     {
                                         if(val.tipo_descuento == 1 && val.descuento < 100)
@@ -698,14 +736,15 @@ define(
                                     {
                                     
                                         var valorCuota = priceUtils.formatPrice((totalCompra/val.cuota), quote.getPriceFormat());
-
+                                        
+                                        
                                         if(val.cuota==1)
                                             interesHtml = val.cuota + ' cuota fija de '+'<strong>'+valorCuota+'</strong>';
                                         else
                                             interesHtml = val.cuota + ' cuotas fijas de '+'<strong>'+valorCuota+'</strong>';
                                     }
 
-
+                                    var teaCtfHtml = '';
                                     var teaCtfHtml = '<span class="reintegro descuento">TEA: '+ val.tea +' % - CFT: '+ val.cft +' %</span>';
 
                                     var onClick = "onclick = \"jQuery(this).children(\'input\').prop(\'checked\',true);" +
@@ -744,7 +783,9 @@ define(
             },
             cambiarTarjeta: function ()
             {
-                console.log('Descuento decidir-method RESET CAMBIARTARJETA');
+                //console.log('Descuento decidir-method RESET CAMBIARTARJETA');
+                //console.log("call ajax");
+                //console.log("thisS:",this);
                 $.ajax('/rest/V1/descuento/reset',
                 {
                     method  : 'GET',
@@ -771,7 +812,8 @@ define(
                 });
 
 
-                console.log('COSTO Decidir-method 2');
+                //console.log('COSTO Decidir-method 2');
+                //console.log("call ajax");
                 $.ajax('/rest/V1/costo/reset',
                 {
                     method  : 'GET',
@@ -814,22 +856,48 @@ define(
              */
             noExisteToken: function ()
             {
-                if(this.tarjetasTokenizadas.length)
-                    return false;
-                else
+                var enabledTokenFlag = this.enabledToken;
+                //console.log("NO EXISTE TOKEN!!!!!!!!!!!!!");
+                //console.log(this.tarjetasTokenizadas.length);
+                //console.log(enabledTokenFlag);
+                //console.log("arguments",arguments);
+                $(".amount strong span.price").html("$0,00");
+                if(enabledTokenFlag == "1"){
+                    if(this.tarjetasTokenizadas.length)
+                        return false;
+                    else
+                        return true;
+                }else{
+                    //console.log("else.....");
                     return true;
+                }
+
+
+                
             },
 
             obtenerToken: function () {
+                $("#error-fields").html("");
+                var bvalidate = false;
+                $('#' + this.getCode() + '-form :input').each(function () {
+                    var input = $(this);
+                    if($('#'+input.attr('id')).valid() == 0){
+                        $("#error-fields").html("Todos los campos son requeridos");
+                        bvalidate = true;
+                        return false;
+                    }  
+                });
+                if(bvalidate)
+                    return false;
                 //OBTENER TOKEN DE PAGO Y HACER PAGO                
-                console.log('FUnción obtenerToken');
+                //console.log('FUnción obtenerToken');
                 require(['jquery', 'jquery/ui'], function($){ 
                     $('#sps-pagar-btn').prop('disabled', true); //Botón place order
                     $( "input[name='payment[method]']" ).prop('disabled', true); //Radiobox de cada medio de pago
                     
                     var form=window.document.querySelector('#decidir_spsdecidir-form');
 
-                    console.log('Placeorder: '+form);
+                    //console.log('Placeorder: '+form);
                     decidirSandbox.createToken(form, sdkResponseHandler);//formulario y callback 
                 });
             },
@@ -840,29 +908,31 @@ define(
                 $( "input[name='payment[method]']" ).prop('disabled', true); //Radiobox de cada medio de pago
 
 
-                console.log('decidir_cuota - ANTES - : '+decidir_cuota);
+                //console.log('decidir_cuota - ANTES - : '+decidir_cuota);
                 //Guarda en sesión el token a utilizar
                 //decidir_cuota=$("[name='plan']:checked").val();
-                console.log('decidir_cuota = '+decidir_cuota);
+                //console.log('decidir_cuota = '+decidir_cuota);
 
 
                 require(['jquery', 'jquery/ui'], function($){ 
                     var form=window.document.querySelector('#decidir_spsdecidir-form-token');
 
-                    console.log('Placeorder: '+form);
+                    //console.log('Placeorder: '+form);
                     decidirSandbox.createToken(form, sdkResponseHandlerTokenizada);//formulario y callback 
                 });
             },
 
 
             cambiarTarjetaTokenizada: function ()
-            {
+            { 
+                var enabledTokenFlag = this.enabledToken;
+                //console.log("enabled token ==>: "+enabledTokenFlag+"\n");
                 var tokenId = this.tarjeta_tokenizada();
                 var datosToken = this.getToken(tokenId);
-                console.log('datosToken --> '+datosToken.token);
+                //console.log('datosToken --> '+datosToken.token);
                 window.decidir_tarjeta_sps=datosToken.token;
-                console.log('cuota = '+$("[name='plan']:checked").val());
-                //decidir_detalles_pago=datosToken.token;  ///
+                //console.log('cuota = '+$("[name='plan']:checked").val());
+
                 window.decidir_holderName=datosToken.card_holder_name;
                 window.decidir_lastDigits=datosToken.card_number_last_4_digits;
                 window.decidir_expirationMonth=datosToken.card_expiration_month;
@@ -870,10 +940,11 @@ define(
                 window.decidir_tarjeta_sps=datosToken.card_type;
                 window.decidir_bin=datosToken.card_bin;
 
-                $('.tarjeta-container').hide();
                 $('#tarjeta-token_'+tokenId).show();
                 $('#decidir-token').val(datosToken.token);
+
             }
         });
+        
     }
 );

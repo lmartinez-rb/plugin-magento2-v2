@@ -63,12 +63,14 @@ class DescuentoCuota extends \Magento\Quote\Model\Quote\Address\Total\AbstractTo
     ) {
         parent::collect($quote, $shippingAssignment, $total);
 
-        $descuento = $quote->getDescuentoCuota();
-
+        $descuento = $quote->getDescuentoCuota(); 
+        $this->print_debub("DescuentoCuota.php descuento:".$descuento);
         if($descuento > 0)
         {
+            $this->print_debub("Descuento > 0:".$this->_checkoutSession->getAplicarDescuento());
             if($this->_checkoutSession->getAplicarDescuento())
             {
+                 
                 if($shippingAssignment->getShipping()->getAddress()->getAddressType() == 'shipping')
                     $this->_checkoutSession->setCollectTotalShipping(true);
                 if($shippingAssignment->getShipping()->getAddress()->getAddressType() == 'billing')
@@ -77,7 +79,7 @@ class DescuentoCuota extends \Magento\Quote\Model\Quote\Address\Total\AbstractTo
                 $total->addTotalAmount($this->getCode(), -$descuento);
                 $total->addBaseTotalAmount($this->getCode(), -$descuento);
 
-                $total->setDescuentoCuota($descuento);
+                
                 $total->setBaseDescuentoCuota($descuento);
 
                 $total->setGrandTotal($total->getGrandTotal() );
@@ -123,7 +125,10 @@ class DescuentoCuota extends \Magento\Quote\Model\Quote\Address\Total\AbstractTo
 
         return $this;
     }
-
+    public function print_debub($cad){
+        \Magento\Framework\App\ObjectManager::getInstance()
+                ->get(\Psr\Log\LoggerInterface::class)->debug($cad); 
+    }
     /**
      * @param \Magento\Quote\Model\Quote $quote
      * @param \Magento\Quote\Model\Quote\Address\Total $total

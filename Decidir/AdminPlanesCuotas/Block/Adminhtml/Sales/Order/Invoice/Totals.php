@@ -11,7 +11,7 @@
 //	    namespace Namespace\Module\Block\Adminhtml\Sales\Order\Invoice;
 
 
-    class Costo extends \Magento\Framework\View\Element\Template
+    class Totals extends \Magento\Framework\View\Element\Template
     {
         protected $_config;
         protected $_order;
@@ -59,30 +59,44 @@
             $this->_source = $parent->getSource();
 
             $store = $this->getStore();
-
+            $costo = 0;
+            if($this->_order->getCosto() != 0 && $this->_order->getCosto() != "" && !empty($this->_order->getCosto()))
+                $costo = $this->_order->getCosto();
+                
             $fee = new \Magento\Framework\DataObject(
                 [
                     'code' => 'costo',
                     'strong' => false,
-                    'value' => $this->_order->getCosto(),
-                    'base_value' => $this->_order->getCosto(),
+                    'value' => $costo,
+                    'base_value' => $costo,
                     'label' => 'Costo financiero',
                 ]
             );
             $parent->addTotal($fee, 'costo');
 
+            $valor_descuento = 0;
+            $label_descuento = "Descuento";
+            if( !empty($this->_order->getDescuentoCuotaDescripcion())){
+                $valor_descuento = $this->_order->getDescuentoCuota();
+                $label_descuento = $this->_order->getDescuentoCuotaDescripcion();
+            }
+                
+
             $descuento = new \Magento\Framework\DataObject(
                 [
                     'code' => 'descuento',
                     'strong' => true,
-                    'value' => $this->_order->getDescuentoCuota() * (-1),
-                    'base_value' => -$this->_order->getDescuentoCuota() * (-1),
-                    'label' => $order->getDescuentoCuotaDescripcion(),
+                    'value' => $valor_descuento * (-1),
+                    'base_value' => $valor_descuento * (-1),
+                    'label' => $label_descuento,
                 ]
             );
+            \Magento\Framework\App\ObjectManager::getInstance()
+                ->get(\Psr\Log\LoggerInterface::class)->debug(" --- DESCUENTO --- ".print_r($descuento,true)); 
             $parent->addTotal($descuento, 'descuento');
 
-
+            \Magento\Framework\App\ObjectManager::getInstance()
+                    ->get(\Psr\Log\LoggerInterface::class)->debug( 'DATA_ORDER: '.print_r($this->getOrderId(), true) );
 
                     /*
                     $parent->getTotal('grand_total')->setValue($parent->getTotal('grand_total')->getValue());

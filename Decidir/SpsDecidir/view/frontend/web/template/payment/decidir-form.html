@@ -45,7 +45,7 @@
                         <li>
                             <label for="sps-tarjeta-nombre" class="required">Nombre en la tarjeta</label>
                             <div class="input-box">
-                                <input type="text" title="Nombre impreso en la tarjeta"
+                                <input required type="text" title="Nombre impreso en la tarjeta"
                                        id="sps-tarjeta-nombre" data-decidir="card_holder_name" placeholder="TITULAR" value="" autocomplete="off" />
                                 <label for="sps-tarjeta-nombre" data-decidir-lbl="card_holder_name"></label>
                             </div>
@@ -53,7 +53,7 @@
                         <li>
                             <label for="sps-tarjeta-numero" class="required">N&uacute;mero de tarjeta</label>
                             <div class="input-box">
-                                <input type="text" id="sps-tarjeta-numero"
+                                <input required type="text" id="sps-tarjeta-numero"
                                        title="Número de tarjeta"
                                        placeholder="XXXX XXXX XXXX XXXX"
                                        value=""
@@ -65,7 +65,7 @@
                         <li class="sps-fecha-vencimiento">
                             <label for="sps-tarjeta-vencimiento" class="required">Mes de vencimiento</label>
                             <div class="input-box">
-                                <input type="text"
+                                <input required type="text" id="sps-tarjeta-vencimiento-month"
                                        value="" class="month" placeholder="MM" data-decidir="card_expiration_month" autocomplete="off" maxlength="2" />
                                 <label for="sps-tarjeta-vencimiento" data-decidir-lbl="expiry_date"></label>
                                 <label for="sps-tarjeta-vencimiento" data-decidir-lbl="card_expiration_month"></label>                                
@@ -75,7 +75,7 @@
                         <li class="sps-fecha-vencimiento">
                             <label for="sps-tarjeta-vencimiento" class="required">Año de vencimiento</label>
                             <div class="input-box">
-                                <input type="text" 
+                                <input id="sps-fecha-vencimiento-id" required type="text" 
                                        value="" class="month" placeholder="AA" data-decidir="card_expiration_year" autocomplete="off" maxlength="2" />
                                 <label for="sps-tarjeta-vencimiento" data-decidir-lbl="card_expiration_year"></label> 
                             </div>
@@ -84,7 +84,7 @@
                         <li class="sps-codigo-seguridad">
                             <label for="sps-tarjeta-codigo-seguridad" class="required">C&oacute;digo de seguridad</label>
                             <div class="input-box">
-                                <input type="text" title="C&oacute;digo de seguridad" 
+                                <input id = "sps-tarjeta-codigo-seguridad" required type="text" title="C&oacute;digo de seguridad" 
                                        value="" placeholder="C&oacute;digo de seguridad"
                                        data-decidir="security_code"
                                        autocomplete="off" />
@@ -95,7 +95,7 @@
                         <li class="sps-tipo-documento">
                             <label for="sps-tarjeta-tipo-documento">Tipo de documento</label>
                             <div class="input-box">
-                                <select data-decidir="card_holder_doc_type" id="sps-tarjeta-tipo-documento">
+                                <select data-decidir="sps-tarjeta-tipo-documento" id="sps-tarjeta-tipo-documento">
                                     <option value="dni">DNI</option>
                                 </select>
                             </div>
@@ -104,9 +104,10 @@
                         <li class="sps-numero-documento">
                             <label for="sps-tarjeta-numero-documento">N&uacute;mero de documento</label>
                             <div class="input-box">
-                                <input type="text" title="N&uacute;mero de documento" id="sps-tarjeta-codigo-seguridad"
+                                <input required type="text" title="N&uacute;mero de documento" id="sps-tarjeta-numero-documento"
                                        value="" placeholder="N&uacute;mero de documento" data-decidir="card_holder_doc_number"
                                        autocomplete="off" />
+                                <label for="sps-tarjeta-numero-documento" ></label>
                             </div>
                         </li>
 
@@ -114,7 +115,7 @@
                         <li>
                             <label for="sps-email">Email</label>
                             <div class="input-box">
-                                <input type="email" title="Email"
+                                <input required type="email" title="Email"
                                        id="sps-email" name="sps[email]"
                                        value=""
                                        autocomplete="off"/>
@@ -159,6 +160,8 @@
                                         data-bind="click: placeOrder"
                                         id="decidir-crear-orden">
                                 </button>
+                                <br>
+                                <label for="error-fields" id="error-fields" style="color:red;"></label>
                             </div>
                         </li>
 

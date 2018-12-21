@@ -109,6 +109,8 @@ class RESTClient{
 		curl_setopt($curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
 		curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $method);
 		curl_setopt($curl, CURLOPT_HTTPHEADER, $header_http);
+		curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
 
 		$response = curl_exec($curl);
 		$codeResponse = curl_getinfo($curl, CURLINFO_HTTP_CODE);

@@ -6,8 +6,8 @@
  */
 
 $token = $this->getToken();
-
-
+$enabledTokenCard = $this->getEnabledTokenizedCard();
+$useCS = ($this->getCSConfig() == 0) ? "true" : "false";
 /*
 ?>
 <?php if(count($token = $this->getToken())): ?>
@@ -20,11 +20,16 @@ $token = $this->getToken();
 ?>
 
 <script type="text/javascript">
+
+console.log("llega desde decidir_head >>>"+<?= ($enabledTokenCard) ?>);
+window.checkoutConfig.payment.enabledToken = <?= ($enabledTokenCard) ?>;
     window.checkoutConfig.payment.decidirToken = <?= \Zend_Json::encode($token) ?>;  
 </script>
 
 
 <script type="text/javascript">
+
+
 const publicApiKey = '<?= $this->getPublicKey() ?>';
 const urlSandbox = '<?= $this->getUrlJs() ?>';
 var decidir_bin='';
@@ -42,7 +47,7 @@ var decidir_planPago='';
 
 
 
-const decidirSandbox = new Decidir(urlSandbox);
+const decidirSandbox = new Decidir(urlSandbox, <?= $useCS ?>);
 decidirSandbox.setPublishableKey(publicApiKey);
 decidirSandbox.setTimeout(0);//se configura sin timeout
 

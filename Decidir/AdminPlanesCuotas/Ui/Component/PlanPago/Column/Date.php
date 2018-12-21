@@ -79,6 +79,8 @@ class Date extends Column
     */
     protected function converToTz($dateTime="", $toTz='', $fromTz='')
     {   
+        //always is in arg
+        $toTz = $fromTz;
         // timezone by php friendly values
         $date = new \DateTime($dateTime, new \DateTimeZone($fromTz));
         $date->setTimezone(new \DateTimeZone($toTz));

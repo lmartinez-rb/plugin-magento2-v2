@@ -27,7 +27,8 @@ Luego,
 + Ejecutar los siguientes comandos de configuración de Magento desde la consola
 
 ```
-php bin/magento module:enable Decidir
+php bin/magento module:enable Decidir_SpsDecidir
+php bin/magento module:enable Decidir_AdminPlanesCuotas
 php bin/magento setup:upgrade
 php bin/magento setup:di:compile
 php bin/magento setup:static-content:deploy es_AR #idioma instalado de la tienda.
