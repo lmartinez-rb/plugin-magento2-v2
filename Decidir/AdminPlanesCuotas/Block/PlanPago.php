@@ -209,13 +209,13 @@ class PlanPago extends Template
 
         $planesPagoDisponiblesSubquery->getSelect()
             ->where('FIND_IN_SET(?, dias)', date('N'))
-            ->order('main_table.prioridad desc');
+            ->order('main_table.prioridad asc');
 
         $planesPagoDisponibles->getSelect()
             ->reset(\Magento\Framework\DB\Select::COLUMNS)
             ->reset(\Magento\Framework\DB\Select::FROM)
-            ->from($planesPagoDisponiblesSubquery->getSelect())
-            ->group(['tarjeta_id','banco_id']);
+            ->from($planesPagoDisponiblesSubquery->getSelect());
+            //->group(['tarjeta_id','banco_id']);
 
         /*
         \Magento\Framework\App\ObjectManager::getInstance()
