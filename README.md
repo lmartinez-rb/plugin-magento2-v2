@@ -3,6 +3,7 @@ Módulo Magento 2 para Decidir.
 ============
 
 Plug in para la integración con gateway de pago <strong>Decidir</strong>
+- [Pasos Previos](#pasosprevios)
 - [Consideraciones Generales](#consideracionesgenerales)
 - [Instalación](#instalacion)
 - [Configuración](#configuracion)- [Datos adiccionales para prevención de fraude](#cybersource)
@@ -10,6 +11,24 @@ Plug in para la integración con gateway de pago <strong>Decidir</strong>
 - [Backend - visualización de cuotas y descuentos](#backenddesc)
 - [Funcionalidades Frontend](#frontend)
 - [Frontend - Visualización de descuentos](#frontenddesc)
+
+<a name="pasosprevios"></a>
+## Pasos previos (solo para entornos Unix/Linux).
+
++ Ejecutar los siguientes comandos desde consola para otargarle a Magento los permisos necesarios sobre el File System, y también para borrar la caché y de este modo asegurarnos que no haya datos de instalaciones anteriores:
+
+...
+find . -type d -exec chmod 755 {} \; && find . -type f -exec chmod 644 {} \; && chmod u+x bin/magento
+
+chmod -R 0777 var/ pub/ generated/
+rm -rf var/cache/* var/view_preprocessed/* generated/* pub/static/*
+php bin/magento setup:upgrade
+php bin/magento setup:di:compile
+php bin/magento setup:static-content:deploy -f
+php bin/magento cache:flush
+php bin/magento indexer:reindex
+chmod -R 0777 var/ pub/ generated/
+...
 
 <a name="consideracionesgenerales"></a>
 ## Consideraciones generales.
