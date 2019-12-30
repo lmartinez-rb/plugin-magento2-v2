@@ -4,7 +4,7 @@ namespace Decidir\SpsDecidir\Observer;
 
 use Decidir\SpsDecidir\Model\Webservice;
 use Magento\Framework\Event\Observer;
-use Magento\Framework\DataObject as Object;
+use Magento\Framework\DataObject as BaseObject;
 use Magento\Framework\Event\ObserverInterface;
 use Decidir\SpsDecidir\Helper\Data;
 use Magento\Framework\Message\ManagerInterface;

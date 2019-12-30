@@ -3,7 +3,7 @@
 namespace Decidir\SpsDecidir\Observer;
 
 use Magento\Framework\Event\Observer;
-use Magento\Framework\DataObject as Object;
+use Magento\Framework\DataObject as BaseObject;
 use Magento\Framework\Event\ObserverInterface;
 use Decidir\SpsDecidir\Helper\EstadoTransaccion;
 use Decidir\SpsDecidir\Helper\Data;
