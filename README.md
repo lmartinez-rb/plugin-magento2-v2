@@ -17,7 +17,7 @@ Plug in para la integración con gateway de pago <strong>Decidir</strong>
 
 + Ejecutar los siguientes comandos desde consola para otargarle a Magento los permisos necesarios sobre el File System, y también para borrar la caché y de este modo asegurarnos que no haya datos de instalaciones anteriores:
 
-...
+```
 find . -type d -exec chmod 755 {} \; && find . -type f -exec chmod 644 {} \; && chmod u+x bin/magento
 
 chmod -R 0777 var/ pub/ generated/
@@ -28,7 +28,7 @@ php bin/magento setup:static-content:deploy -f
 php bin/magento cache:flush
 php bin/magento indexer:reindex
 chmod -R 0777 var/ pub/ generated/
-...
+```
 
 <a name="consideracionesgenerales"></a>
 ## Consideraciones generales.
