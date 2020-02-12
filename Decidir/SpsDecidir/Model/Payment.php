@@ -330,9 +330,9 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
                 );
             }
 
-            if(!empty($planPagoData[0]['merchant'])){
+            /*if(!empty($planPagoData[0]['merchant'])){
                 $data["site_id"]=$planPagoData[0]['merchant'];
-            }
+            }*/
 
 
         if($this->_scopeConfig->getValue('payment/decidir_spsdecidir/cybersource')==1){
