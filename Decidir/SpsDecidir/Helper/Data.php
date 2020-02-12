@@ -99,10 +99,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function setInfoTransaccionSPS($data)
     {
-        $blockCipher = \Zend\Crypt\BlockCipher::factory('mcrypt', array('algo' => 'aes'));
-        $blockCipher->setKey(self::SECRET_WORD);
-
-        $transaccionSerializada = $blockCipher->encrypt(serialize($data));
+        $transaccionSerializada = serialize($data);
 
         $this->_checkoutSession->setOperacionSps($transaccionSerializada);
     }
@@ -114,12 +111,10 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function getInfoTransaccionSPS()
     {
-        $blockCipher = \Zend\Crypt\BlockCipher::factory('mcrypt', array('algo' => 'aes'));
-        $blockCipher->setKey(self::SECRET_WORD);
 
         $operacionSps=$this->_checkoutSession->getOperacionSps();
         if($operacionSps){
-            return unserialize($blockCipher->decrypt($operacionSps));
+            return unserialize($operacionSps);
         }else{
             return false;
         }
